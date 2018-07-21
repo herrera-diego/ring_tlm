@@ -19,6 +19,9 @@ cpu_test: cpu
 cpu: cpu.cpp cpu.h ID_Extension.h
 	$(CXX) $(CXXFLAGS) -c cpu.h ID_Extension.h cpu.cpp $(LDLIBS)
 
+example2: cputest.cpp
+	$(CXX) $(CXXFLAGS) -c cputest.cpp $(LDLIBS)
+
 example:
 	$(CXX) $(CXXFLAGS) non_blocking.cpp -o non_blocking.out $(LDLIBS)
 

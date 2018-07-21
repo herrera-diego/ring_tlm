@@ -83,7 +83,7 @@ tlm::tlm_sync_enum nb_transport_bw( tlm::tlm_generic_payload& trans,
         //Delay for TLM_COMPLETE
         wait(delay);
         
-        cout << name() << " END_RESP RECEIVED" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;
+        //cout << name() << " END_RESP RECEIVED" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;
             
         return tlm::TLM_COMPLETED;
         
@@ -102,7 +102,7 @@ tlm::tlm_sync_enum nb_transport_bw( tlm::tlm_generic_payload& trans,
         //Delay
         wait(delay);
         
-        cout << name () << " BEGIN_RESP RECEIVED" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;
+        //cout << name () << " BEGIN_RESP RECEIVED" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;
         
         return tlm::TLM_ACCEPTED;   
     }   

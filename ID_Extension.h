@@ -1,3 +1,6 @@
+#ifndef ID_EXENSION_H
+#define ID_EXENSION_H
+
 #include <systemc.h>   
 using namespace sc_core;   
 using namespace sc_dt;   
@@ -23,3 +26,5 @@ struct ID_extension: tlm::tlm_extension<ID_extension> {
   }
   unsigned int transaction_id;
 };
+
+#endif
