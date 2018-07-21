@@ -16,8 +16,8 @@ cpu_test: cpu
 	./top.out
 	gtkwave -a top_config.gtkw ./top.vcd &
 
-cpu: cpu.cpp cpu.h
-	$(CXX) $(CXXFLAGS) -c cpu.cpp cpu.h ID_Extension.h $(LDLIBS)
+cpu: cpu.cpp cpu.h ID_Extension.h
+	$(CXX) $(CXXFLAGS) -c cpu.h ID_Extension.h cpu.cpp $(LDLIBS)
 
 example:
 	$(CXX) $(CXXFLAGS) non_blocking.cpp -o non_blocking.out $(LDLIBS)
