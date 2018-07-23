@@ -9,18 +9,21 @@ CXX=g++
 
 OUT_FILES=*.so *.o *.vcd *.h.gch
 
-all: cpu_test
+all: top
 
-cpu_test: cpu.o
-	$(CXX) $(CXXFLAGS) tb_top.cpp cpu.o -o top.o $(LDLIBS) 
+top: top.h tb_top.cpp cpu memory 
+	$(CXX) $(CXXFLAGS) top.h tb_top.cpp cpu.o memory.o -o top.o $(LDLIBS) 
 	./top.o
-	gtkwave -a top_config.gtkw ./top.vcd &
+	#gtkwave -a top_config.gtkw ./top.vcd &
 
 cpu: cpu.cpp cpu.h ID_Extension.h
 	$(CXX) $(CXXFLAGS) -c cpu.h ID_Extension.h cpu.cpp $(LDLIBS)
 
+memory: memory.cpp memory.h ID_Extension.h
+	$(CXX) $(CXXFLAGS) -c memory.h ID_Extension.h memory.cpp $(LDLIBS)
+
 example:
-	$(CXX) $(CXXFLAGS) non_blocking.cpp -o non_blocking.out $(LDLIBS)
+	$(CXX) $(CXXFLAGS) non_blocking.cpp -o non_blocking.o $(LDLIBS)
 
 clean:
 	rm -rf $(OUT_FILES)

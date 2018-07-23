@@ -14,26 +14,27 @@ using namespace std;
    
 class Initiator: sc_module   
 {   
-    // Internal data buffer used by initiator with generic payload   
-    int data; 
+    public:
+        // Internal data buffer used by initiator with generic payload   
+        int data; 
 
-    // TLM2 socket, defaults to 32-bits wide, generic payload, generic DMI mode   
-    tlm_utils::simple_initiator_socket<Initiator> socket; 
+        // TLM2 socket, defaults to 32-bits wide, generic payload, generic DMI mode   
+        tlm_utils::simple_initiator_socket<Initiator> socket; 
 
 
-    virtual tlm::tlm_sync_enum nb_transport_bw( tlm::tlm_generic_payload& trans,   
-                                        tlm::tlm_phase& phase, sc_time& delay ) ;
+        virtual tlm::tlm_sync_enum nb_transport_bw( tlm::tlm_generic_payload& trans,   
+                                            tlm::tlm_phase& phase, sc_time& delay ) ;
 
-    void thread_process();
-    
-    SC_CTOR(Initiator)   
-    : socket("socket")  // Construct and name socket   
-    {   
-        // Register callbacks for incoming interface method calls
-        socket.register_nb_transport_bw(this, &Initiator::nb_transport_bw);
+        void thread_process();
         
-        SC_THREAD(thread_process);   
-    }    
+        SC_CTOR(Initiator)   
+        : socket("socket")  // Construct and name socket   
+        {   
+            // Register callbacks for incoming interface method calls
+            socket.register_nb_transport_bw(this, &Initiator::nb_transport_bw);
+            
+            SC_THREAD(thread_process);   
+        }    
 };
 
 #endif

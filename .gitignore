@@ -1,4 +1,7 @@
 cpu.h.gch
 ID_Extension.h.gch
-non_blocking.out
+non_blocking.o
 cpu.o
+memory.o
+memory.h.gch
+top.o
