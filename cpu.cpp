@@ -69,7 +69,7 @@ void Initiator::thread_process()
 // TLM2 backward path non-blocking transport method   
 // *********************************************   
 
-tlm::tlm_sync_enum nb_transport_bw( tlm::tlm_generic_payload& trans,   
+tlm::tlm_sync_enum Initiator::nb_transport_bw( tlm::tlm_generic_payload& trans,   
                                         tlm::tlm_phase& phase, sc_time& delay )   
 {   
     tlm::tlm_command cmd = trans.get_command();   
@@ -83,7 +83,7 @@ tlm::tlm_sync_enum nb_transport_bw( tlm::tlm_generic_payload& trans,
         //Delay for TLM_COMPLETE
         wait(delay);
         
-        //cout << name() << " END_RESP RECEIVED" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;
+        cout << name() << " END_RESP RECEIVED" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;
             
         return tlm::TLM_COMPLETED;
         
@@ -102,7 +102,7 @@ tlm::tlm_sync_enum nb_transport_bw( tlm::tlm_generic_payload& trans,
         //Delay
         wait(delay);
         
-        //cout << name () << " BEGIN_RESP RECEIVED" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;
+        cout << name () << " BEGIN_RESP RECEIVED" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;
         
         return tlm::TLM_ACCEPTED;   
     }   
