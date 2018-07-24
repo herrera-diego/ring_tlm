@@ -7,7 +7,7 @@ using namespace sc_core;
 using namespace sc_dt;   
 using namespace std;   
    
-class ComputerNode: Router   
+class ComputerNode: public Router   
 {   
     public:
         // Internal data buffer used by initiator with generic payload   
@@ -15,7 +15,8 @@ class ComputerNode: Router
 
         void thread_process();
         
-        SC_CTOR(ComputerNode)   
+        //ComputerNode(sc_module_name name) : sc_module(name), Router(name) 
+        SC_CTOR(ComputerNode) : Router("Router")
         //: socket_initiator("socket")  // Construct and name socket   
         {   
             // Register callbacks for incoming interface method calls

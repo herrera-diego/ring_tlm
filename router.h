@@ -12,7 +12,7 @@ using namespace sc_core;
 using namespace sc_dt;   
 using namespace std;   
    
-class Router: sc_module   
+class Router: public sc_module   
 {       
     public:
         // TLM2 non-blocking transport method     
