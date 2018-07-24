@@ -16,11 +16,14 @@ top: top.h tb_top.cpp cpu memory
 	./top.o
 	#gtkwave -a top_config.gtkw ./top.vcd &
 
-cpu: cpu.cpp cpu.h ID_Extension.h
-	$(CXX) $(CXXFLAGS) -c cpu.h ID_Extension.h cpu.cpp $(LDLIBS)
+cpu: cpu.cpp cpu.h ID_Extension.h router.o
+	$(CXX) $(CXXFLAGS) -c router.o cpu.h ID_Extension.h cpu.cpp $(LDLIBS)
 
-memory: memory.cpp memory.h ID_Extension.h
-	$(CXX) $(CXXFLAGS) -c memory.h ID_Extension.h memory.cpp $(LDLIBS)
+memory: memory.cpp memory.h ID_Extension.h router.o
+	$(CXX) $(CXXFLAGS) -c router.o memory.h ID_Extension.h memory.cpp $(LDLIBS)
+
+router: router.cpp router.h ID_Extension.h
+	$(CXX) $(CXXFLAGS) -c router.h ID_Extension.h router.cpp $(LDLIBS)
 
 example:
 	$(CXX) $(CXXFLAGS) non_blocking.cpp -o non_blocking.o $(LDLIBS)
