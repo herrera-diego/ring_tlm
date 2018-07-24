@@ -14,13 +14,14 @@ SC_MODULE(Top)
     // Instantiate components   
     initiator = new ComputerNode("initiator");   
     memory    = new Memory   ("memory");   
-    tlm_utils::simple_target_socket<Router> mysocket;
+    //tlm_utils::simple_target_socket<Router> mysocket;
    
     // One initiator is bound directly to one target with no intervening bus   
    
     // Bind initiator socket to target socket   
-    initiator->socket_initiator.bind(memory->socket); 
-    initiator->socket_target.bind(mysocket);   
+    initiator->socket_initiator.bind(memory->socket_target); 
+    memory->socket_initiator.bind(initiator->socket_target); 
+    //initiator->socket_target.bind(mysocket);   
   }   
 };   
 #endif

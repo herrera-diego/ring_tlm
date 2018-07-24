@@ -1,51 +1,4 @@
 #include "memory.h"
-
-tlm::tlm_sync_enum Memory::nb_transport_fw( tlm::tlm_generic_payload& trans,
-                                              tlm::tlm_phase& phase, sc_time& delay )
-{
-    sc_dt::uint64    adr = trans.get_address();
-    unsigned int     len = trans.get_data_length();
-    unsigned char*   byt = trans.get_byte_enable_ptr();
-    unsigned int     wid = trans.get_streaming_width();
-
-    ID_extension* id_extension = new ID_extension;
-    trans.get_extension( id_extension ); 
-    
-    if(phase == tlm::END_REQ){
-      
-      wait(delay);
-      
-      cout << name() << " END_REQ RECEIVED" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;
-      
-      return tlm::TLM_COMPLETED;
-    }
-    if(phase == tlm::BEGIN_REQ){
-      // Obliged to check the transaction attributes for unsupported features
-      // and to generate the appropriate error response
-      if (byt != 0) {
-        trans.set_response_status( tlm::TLM_BYTE_ENABLE_ERROR_RESPONSE );
-        return tlm::TLM_COMPLETED;
-      }
-      //if (len > 4 || wid < len) {
-      //  trans.set_response_status( tlm::TLM_BURST_ERROR_RESPONSE );
-      //  return tlm::TLM_COMPLETED;
-      //}
-
-      // Now queue the transaction until the annotated time has elapsed
-      trans_pending=&trans;
-      phase_pending=phase;
-      delay_pending=delay;
-
-      e1.notify();
-      
-      //Delay
-      wait(delay);
-      
-      cout << name() << " BEGIN_REQ RECEIVED" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;      
-      
-      return tlm::TLM_ACCEPTED;
-    }  
-}
   
 void Memory::thread_process()  
 {   
@@ -94,7 +47,7 @@ void Memory::thread_process()
         // Call on backward path to complete the transaction
         tlm::tlm_sync_enum status;
         phase = tlm::BEGIN_RESP;   
-        status = socket->nb_transport_bw( *trans_pending, phase, delay_pending );   
+        status = this->socket_target->nb_transport_bw( *trans_pending, phase, delay_pending );   
 
         // The target gets a final chance to read or update the transaction object at this point.   
         // Once this process yields, the target must assume that the transaction object   
@@ -112,7 +65,7 @@ void Memory::thread_process()
             cout << name() << " END_RESP SENT" << " TRANS ID " << id_extension->transaction_id <<  " at time " << sc_time_stamp() << endl;
             // Expect response on the backward path  
             phase = tlm::END_RESP; 
-            socket->nb_transport_bw( *trans_pending, phase, delay_pending );  // Non-blocking transport call
+            this->socket_target->nb_transport_bw( *trans_pending, phase, delay_pending );  // Non-blocking transport call
         //break;           
     }   
 } 

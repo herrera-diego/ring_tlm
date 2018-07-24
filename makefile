@@ -19,7 +19,7 @@ top: top.h tb_top.cpp cpu memory router
 cpu: cpu.cpp cpu.h router
 	$(CXX) $(CXXFLAGS) -c cpu.h ID_Extension.h cpu.cpp $(LDLIBS)
 
-memory: memory.cpp memory.h ID_Extension.h
+memory: memory.cpp memory.h ID_Extension.h router
 	$(CXX) $(CXXFLAGS) -c memory.h ID_Extension.h memory.cpp $(LDLIBS)
 
 router: router.cpp router.h ID_Extension.h

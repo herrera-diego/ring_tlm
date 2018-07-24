@@ -21,6 +21,7 @@ class ComputerNode: public Router
         {   
             // Register callbacks for incoming interface method calls
             this->socket_initiator.register_nb_transport_bw(this, &ComputerNode::nb_transport_bw);
+            this->socket_target.register_nb_transport_fw(this, &ComputerNode::nb_transport_fw);
             
             SC_THREAD(thread_process);   
         }    
