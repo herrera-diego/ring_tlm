@@ -15,7 +15,7 @@ class ComputerNode: public Router
 
         void thread_process();
         
-        //ComputerNode(sc_module_name name) : sc_module(name), Router(name) 
+        //ComputerNode(sc_module_name name) : Router(name)
         SC_CTOR(ComputerNode) : Router("Router")
         //: socket_initiator("socket")  // Construct and name socket   
         {   
