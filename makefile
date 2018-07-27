@@ -11,10 +11,12 @@ OUT_FILES=*.so *.o *.vcd *.h.gch
 
 all: top
 
+debug: top.h tb_top.cpp cpu.cpp cpu.h memory.cpp memory.h router.cpp router.h ID_Extension.h
+	$(CXX) $(CXXFLAGS) -g router.cpp router.h ID_Extension.h memory.cpp memory.h cpu.cpp cpu.h top.h tb_top.cpp -o debug.o $(LDLIBS) 
+
 top: top.h tb_top.cpp cpu.o memory.o router.o
 	$(CXX) $(CXXFLAGS) top.h tb_top.cpp router.o cpu.o memory.o -o top.o $(LDLIBS) 
 	./top.o
-	#gtkwave -a top_config.gtkw ./top.vcd &
 
 cpu.o: cpu.cpp cpu.h router.o
 	$(CXX) $(CXXFLAGS) -c cpu.h cpu.cpp $(LDLIBS)
@@ -27,6 +29,7 @@ router.o: router.cpp router.h ID_Extension.h
 
 example:
 	$(CXX) $(CXXFLAGS) non_blocking.cpp -o non_blocking.o $(LDLIBS)
+	./non_blocking.o
 
 clean:
 	rm -rf $(OUT_FILES)

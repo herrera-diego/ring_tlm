@@ -1,37 +1,38 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include "router.h"
+#include "ID_Extension.h"
 
 using namespace sc_core;   
 using namespace sc_dt;   
 using namespace std;   
    
 
-class Memory: public Router
+class Memory: public sc_module
 {   
     public:
         enum { SIZE = 256 };   
         const sc_time LATENCY;   
 
         int mem[SIZE];   
+
+        tlm_utils::simple_target_socket<Memory> socket_target;
+        tlm::tlm_generic_payload* trans_pending;   
+        tlm::tlm_phase phase_pending;   
+        sc_time delay_pending;
+
+        sc_event  e1;
         
         // *********************************************   
         // Thread to call nb_transport on backward path   
         // ********************************************* 
         void thread_process();
+        void readMem();
         
         SC_CTOR(Memory)   
-        : Router("Router"), LATENCY(10, SC_NS)   
+        :socket_target("socket"), LATENCY(10, SC_NS)   
         {   
-            // Register callbacks for incoming interface method calls
-            this->socket_target.register_nb_transport_fw(this, &Memory::nb_transport_fw);
-            this->socket_initiator.register_nb_transport_bw(this, &Memory::nb_transport_bw);
-        
-            // Initialize memory with random data   
-            for (int i = 0; i < SIZE; i++)   
-            mem[i] = 0xAA000000 | (rand() % 256);   
-        
+            readMem();       
             SC_THREAD(thread_process);   
         }   
 };   

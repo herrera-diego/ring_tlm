@@ -83,7 +83,7 @@ tlm::tlm_sync_enum Router::nb_transport_fw( tlm::tlm_generic_payload& trans,
       
       //Delay
       wait(delay);
-      
+
       cout << name() << " BEGIN_REQ RECEIVED" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;      
       
       return tlm::TLM_ACCEPTED;

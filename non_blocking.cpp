@@ -265,6 +265,8 @@ struct Memory: sc_module
       if (adr >= sc_dt::uint64(SIZE) || byt != 0 || wid != 0 || len > 4)   
         SC_REPORT_ERROR("TLM2", "Target does not support given generic payload transaction");   
       
+      cout << "Address: " << hex <<adr<< " Memory Data: " <<hex << &mem[adr] << endl;  
+      cout << "Address: " << hex <<adr<< " Memory Data: " <<hex << ptr << endl;   
       // Obliged to implement read and write commands   
       if ( cmd == tlm::TLM_READ_COMMAND )   
         memcpy(ptr, &mem[adr], len);   
