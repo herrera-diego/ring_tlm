@@ -7,3 +7,4 @@ memory.h.gch
 top.o
 router.o
 router.h.gch
+RouterEvents.h.gch

@@ -14,12 +14,7 @@ SC_MODULE(Top)
   Router *router0;
   // Router *router1; 
   // Router *router2; 
-  void syncEvents()
-  {
-    wait(router0->e1);
-
-    memory->e1.notify();
-  }
+  
 
   SC_CTOR(Top)   
   {   
@@ -30,7 +25,6 @@ SC_MODULE(Top)
     //initiator2 = new ComputerNode("initiator2");  
     memory    = new Memory   ("memory");   
 
-    SC_THREAD(syncEvents);
     // router1 = new Router("R1");
     // router2 = new Router("R2");
     //tlm_utils::simple_target_socket<Router> mysocket;

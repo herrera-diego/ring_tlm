@@ -2,6 +2,8 @@
 #define MEMORY_H
 
 #include "ID_Extension.h"
+#include "RouterEvents.h"
+
 
 using namespace sc_core;   
 using namespace sc_dt;   
@@ -20,8 +22,6 @@ class Memory: public sc_module
         tlm::tlm_generic_payload* trans_pending;   
         tlm::tlm_phase phase_pending;   
         sc_time delay_pending;
-
-        sc_event  e1;
         
         // *********************************************   
         // Thread to call nb_transport on backward path   

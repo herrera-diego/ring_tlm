@@ -5,7 +5,7 @@ void Memory::thread_process()
     while (true) {
 
         // Wait for an event to pop out of the back end of the queue   
-        wait(e1); 
+        wait(RouterEvents::myEvent); 
         //printf("ACCESING MEMORY\n");
 
         //tlm::tlm_generic_payload* trans_ptr;   

@@ -79,7 +79,7 @@ tlm::tlm_sync_enum Router::nb_transport_fw( tlm::tlm_generic_payload& trans,
       phase_pending=phase;
       delay_pending=delay;
 
-      e1.notify();
+      RouterEvents::myNotify();
       
       //Delay
       wait(delay);

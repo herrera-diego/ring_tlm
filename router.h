@@ -2,6 +2,7 @@
 #define ROUTER_H
 
 #include "ID_Extension.h"
+#include "RouterEvents.h"
 
 using namespace sc_core;   
 using namespace sc_dt;   
@@ -27,7 +28,7 @@ class Router: public sc_module
         
         const sc_time LATENCY;   
   
-        sc_event  e1;
+        //sc_event  e1;
         tlm::tlm_generic_payload* trans_pending;   
         tlm::tlm_phase phase_pending;   
         sc_time delay_pending;
