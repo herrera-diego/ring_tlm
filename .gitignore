@@ -1,5 +1,6 @@
 cpu.h.gch
 ID_Extension.h.gch
+ID_Extension.o
 non_blocking.o
 cpu.o
 memory.o

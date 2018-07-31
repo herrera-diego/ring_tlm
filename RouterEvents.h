@@ -12,7 +12,7 @@ class RouterEvents
 
     static void myNotify()
     {
-      myEvent.notify();
+        myEvent.notify();
     }
 };
 

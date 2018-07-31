@@ -1,31 +1,28 @@
 #ifndef CPU_H
 #define CPU_H
 
-#include "ID_Extension.h"
+#include <systemc.h>
 
-using namespace sc_core;   
-using namespace sc_dt;   
-using namespace std;   
-   
-class ComputerNode: public sc_module   
-{   
+#include "tlm.h"
+#include "tlm_utils/simple_initiator_socket.h"
+#include "tlm_utils/simple_target_socket.h"
+#include "tlm_utils/peq_with_cb_and_phase.h"
+
+class CPU: public sc_module
+{
     public:
-        // Internal data buffer used by initiator with generic payload   
-        int data; 
-        const char* routerName;
+        // Internal data buffer used by initiator with generic payload
+        int                                     data;
+        const char                              *routerName;
+
+        tlm_utils::simple_initiator_socket<CPU> socket_initiator;
+        tlm::tlm_generic_payload                *trans_pending;
+        tlm::tlm_phase                          phase_pending;
+        sc_time                                 delay_pending;
+        
+        SC_CTOR(CPU);
         void thread_process();
 
-        tlm_utils::simple_initiator_socket<ComputerNode> socket_initiator;
-        tlm::tlm_generic_payload* trans_pending;   
-        tlm::tlm_phase phase_pending;   
-        sc_time delay_pending;
-        
-        //ComputerNode(sc_module_name name) : Router(name)
-        SC_CTOR(ComputerNode) : socket_initiator("socket")
-        //: socket_initiator("socket")  // Construct and name socket   
-        {   
-            SC_THREAD(thread_process);   
-        }    
 };
 
 #endif

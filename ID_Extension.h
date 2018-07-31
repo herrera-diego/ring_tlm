@@ -1,33 +1,20 @@
-#ifndef ID_EXENSION_H
-#define ID_EXENSION_H
+#ifndef ID_EXTENSION_H
+#define ID_EXTENSION_H
 
 #include <systemc.h>    
 #include "tlm.h"
-#include "tlm_utils/simple_initiator_socket.h"
-#include "tlm_utils/simple_target_socket.h"
-#include "tlm_utils/peq_with_cb_and_phase.h"
-
-using namespace sc_core;   
-using namespace sc_dt;   
-using namespace std;   
-
 
 // User-defined extension class
-struct ID_extension: tlm::tlm_extension<ID_extension> 
+class ID_extension : public tlm::tlm_extension<ID_extension> 
 {
-  public:
-    ID_extension() : transaction_id(0) {}
-    virtual tlm_extension_base* clone() const { // Must override pure virtual clone method
-      ID_extension* t = new ID_extension;
-      t->transaction_id = this->transaction_id;
-      return t;
-    }
+    public:
+        ID_extension();
 
-    // Must override pure virtual copy_from method
-    virtual void copy_from(tlm_extension_base const &ext) {
-      transaction_id = static_cast<ID_extension const &>(ext).transaction_id;
-    }
-    unsigned int transaction_id;
+        // Must override pure virtual methods
+        tlm::tlm_extension_base* clone() const;
+        void copy_from(tlm::tlm_extension_base const &ext);
+
+        unsigned int transaction_id;
 };
 
 #endif

@@ -1,7 +1,19 @@
 #include "cpu.h"
-   
-void ComputerNode::thread_process()   
+#include "ID_Extension.h"
+
+CPU::CPU(sc_core::sc_module_name module_name) : socket_initiator("socket")
 {   
+    SC_THREAD(thread_process);   
+} 
+
+void CPU::thread_process()   
+{
+
+    for (int i = 0; i < 5; i++)   
+    {
+        std::cout << "Running thread of CPU: " << routerName << "\n";
+    }
+
     // TLM2 generic payload transaction
     tlm::tlm_generic_payload trans;
     ID_extension* id_extension = new ID_extension;

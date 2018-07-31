@@ -1,11 +1,22 @@
 #include "memory.h"
-  
+
+#include "ID_Extension.h"
+#include "RouterEvents.h"
+
+Memory::Memory(sc_core::sc_module_name module_name) : socket_target("socket"), LATENCY(10, SC_NS)   
+{
+    readMem();
+    SC_THREAD(thread_process);
+}
+
+
 void Memory::thread_process()  
-{   
+{
     while (true) {
 
         // Wait for an event to pop out of the back end of the queue   
         wait(RouterEvents::myEvent); 
+
         //printf("ACCESING MEMORY\n");
 
         //tlm::tlm_generic_payload* trans_ptr;   
@@ -31,8 +42,6 @@ void Memory::thread_process()
             SC_REPORT_ERROR("TLM2", "Target does not support given generic payload transaction");  
         } 
         
-
-          
         // Obliged to implement read and write commands   
         if ( cmd == tlm::TLM_READ_COMMAND )
         {   
@@ -76,7 +85,7 @@ void Memory::thread_process()
             phase = tlm::END_RESP; 
             this->socket_target->nb_transport_bw( *trans_pending, phase, delay_pending );  // Non-blocking transport call
         //break;           
-    }   
+    }
 } 
 
 void Memory::readMem()
@@ -88,3 +97,4 @@ void Memory::readMem()
         cout << "Memory Data: " <<hex << mem[i] << endl;
     } 
 }
+

@@ -11,11 +11,11 @@ OUT_FILES=*.so *.o *.vcd *.h.gch
 
 all: top
 
-debug: top.h tb_top.cpp cpu.cpp cpu.h memory.cpp memory.h router.cpp router.h ID_Extension.h RouterEvents.h
-	$(CXX) $(CXXFLAGS) -g router.cpp router.h RouterEvents.h ID_Extension.h memory.cpp memory.h cpu.cpp cpu.h top.h tb_top.cpp -o debug.o $(LDLIBS) 
+debug: top.h tb_top.cpp RouterEvents.h cpu.cpp cpu.h memory.cpp memory.h router.cpp router.h ID_Extension.h ID_Extension.cpp
+	$(CXX) $(CXXFLAGS) -g RouterEvents.h router.cpp router.h ID_Extension.h ID_Extension.cpp memory.cpp memory.h cpu.cpp cpu.h top.h tb_top.cpp -o debug.o $(LDLIBS)
 
-top: top.h tb_top.cpp cpu.o memory.o router.o
-	$(CXX) $(CXXFLAGS) top.h tb_top.cpp router.o cpu.o memory.o -o top.o $(LDLIBS) 
+top: top.h tb_top.cpp cpu.o memory.o router.o ID_Extension.o
+	$(CXX) $(CXXFLAGS) top.h tb_top.cpp router.o cpu.o memory.o ID_Extension.o -o top.o $(LDLIBS)
 	./top.o
 
 cpu.o: cpu.cpp cpu.h router.o
