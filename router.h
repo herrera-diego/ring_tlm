@@ -33,7 +33,12 @@ class Router: public sc_core::sc_module
         tlm::tlm_phase                              phase_pending;
         sc_time                                     delay_pending;
         
-        SC_CTOR(Router);
+        Router(sc_module_name name_, sc_event * e) ;
+        
+        SC_HAS_PROCESS(Router);      
+
+    //private:
+        sc_event * my_event_ptr;
 };
 
 #endif

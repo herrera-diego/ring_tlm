@@ -11,8 +11,8 @@ OUT_FILES=*.so *.o *.vcd *.h.gch
 
 all: top
 
-debug: top.h tb_top.cpp RouterEvents.h cpu.cpp cpu.h memory.cpp memory.h router.cpp router.h ID_Extension.h ID_Extension.cpp
-	$(CXX) $(CXXFLAGS) -g RouterEvents.h router.cpp router.h ID_Extension.h ID_Extension.cpp memory.cpp memory.h cpu.cpp cpu.h top.h tb_top.cpp -o debug.o $(LDLIBS)
+debug: top.h tb_top.cpp cpu.cpp cpu.h memory.cpp memory.h router.cpp router.h ID_Extension.h ID_Extension.cpp
+	$(CXX) $(CXXFLAGS) -g ID_Extension.h ID_Extension.cpp router.cpp router.h memory.cpp memory.h cpu.cpp cpu.h top.h tb_top.cpp -o debug.o $(LDLIBS)
 
 top: top.h tb_top.cpp cpu.o memory.o router.o ID_Extension.o
 	$(CXX) $(CXXFLAGS) top.h tb_top.cpp router.o cpu.o memory.o ID_Extension.o -o top.o $(LDLIBS)
@@ -23,9 +23,12 @@ cpu.o: cpu.cpp cpu.h router.o
 
 memory.o: memory.cpp memory.h  router.o
 	$(CXX) $(CXXFLAGS) -c memory.h  memory.cpp $(LDLIBS)
+ 
+router.o: router.cpp router.h ID_Extension.o 
+	$(CXX) $(CXXFLAGS) -c router.h router.cpp $(LDLIBS)
 
-router.o: router.cpp router.h ID_Extension.h RouterEvents.h
-	$(CXX) $(CXXFLAGS) -c router.h ID_Extension.h RouterEvents.h router.cpp $(LDLIBS)
+ID_Extension.o: ID_Extension.h ID_Extension.cpp
+	$(CXX) $(CXXFLAGS) -c ID_Extension.h ID_Extension.cpp $(LDLIBS)
 
 example:
 	$(CXX) $(CXXFLAGS) non_blocking.cpp -o non_blocking.o $(LDLIBS)

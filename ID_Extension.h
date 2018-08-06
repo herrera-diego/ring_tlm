@@ -11,8 +11,8 @@ class ID_extension : public tlm::tlm_extension<ID_extension>
         ID_extension();
 
         // Must override pure virtual methods
-        tlm::tlm_extension_base* clone() const;
-        void copy_from(tlm::tlm_extension_base const &ext);
+        virtual tlm::tlm_extension_base* clone() const;
+        virtual void copy_from(tlm::tlm_extension_base const &ext);
 
         unsigned int transaction_id;
 };

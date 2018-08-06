@@ -25,6 +25,12 @@ class Memory: public sc_module
         void thread_process();
         void readMem();
         
-        SC_CTOR(Memory);
+            
+        Memory(sc_module_name name_, sc_event * e) ;
+        
+        SC_HAS_PROCESS(Memory);      
+
+    //private:
+        sc_event * my_event_ptr;
 };   
 #endif

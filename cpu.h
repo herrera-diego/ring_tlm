@@ -19,9 +19,12 @@ class CPU: public sc_module
         tlm::tlm_generic_payload                *trans_pending;
         tlm::tlm_phase                          phase_pending;
         sc_time                                 delay_pending;
-        
-        SC_CTOR(CPU);
+                
         void thread_process();
+
+        CPU(sc_module_name name_) ;
+        
+        SC_HAS_PROCESS(CPU);    
 
 };
 

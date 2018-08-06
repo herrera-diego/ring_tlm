@@ -1,7 +1,7 @@
 #include "cpu.h"
 #include "ID_Extension.h"
 
-CPU::CPU(sc_core::sc_module_name module_name) : socket_initiator("socket")
+CPU::CPU(sc_core::sc_module_name name_) : socket_initiator("socket")
 {   
     SC_THREAD(thread_process);   
 } 

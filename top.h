@@ -4,7 +4,6 @@
 #include "cpu.h"
 #include "memory.h"
 #include "router.h"
-#include "RouterEvents.h"
 
 SC_MODULE(Top)
 {
@@ -16,16 +15,20 @@ SC_MODULE(Top)
     // Router       *router1; 
     // Router       *router2;
 
-    static RouterEvents RouterEvent;
+    sc_event *my_event_ptr;     
+   
 
     SC_CTOR(Top)
     {
+        my_event_ptr = new sc_event; 
         // Instantiate components
         initiator = new CPU("initiator");
     
-        router0 = new Router("R0");
+        router0 = new Router("R0", my_event_ptr);
+        //router0.my_event_ptr(my_event_ptr);    
         //initiator2 = new CPU("initiator2");
-        memory    = new Memory   ("memory");
+        memory    = new Memory   ("memory", my_event_ptr);
+        //memory->my_event_ptr(my_event_ptr);   
 
         // router1 = new Router("R1");
         // router2 = new Router("R2");

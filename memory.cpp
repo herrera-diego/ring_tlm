@@ -1,9 +1,10 @@
 #include "memory.h"
 
 #include "ID_Extension.h"
-#include "RouterEvents.h"
 
-Memory::Memory(sc_core::sc_module_name module_name) : socket_target("socket"), LATENCY(10, SC_NS)   
+Memory::Memory(sc_module_name name_, sc_event * e) :
+           sc_module(name_), my_event_ptr(e), socket_target("socket"), LATENCY(10, SC_NS)   
+//Memory::Memory(sc_core::sc_module_name module_name) : socket_target("socket"), LATENCY(10, SC_NS)   
 {
     readMem();
     SC_THREAD(thread_process);
@@ -15,7 +16,7 @@ void Memory::thread_process()
     while (true) {
 
         // Wait for an event to pop out of the back end of the queue   
-        wait(RouterEvents::myEvent); 
+        wait(*my_event_ptr); 
 
         //printf("ACCESING MEMORY\n");
 
