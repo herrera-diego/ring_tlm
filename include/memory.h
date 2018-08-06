@@ -26,5 +26,7 @@ class Memory: public sc_module
         void readMem();
         
         SC_CTOR(Memory);
+
+        virtual tlm::tlm_sync_enum nb_transport_fw( tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_time& delay );
 };   
 #endif

@@ -16,4 +16,6 @@ class RouterEvents
     }
 };
 
+extern RouterEvents routerEvents;
+
 #endif

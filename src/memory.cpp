@@ -1,21 +1,20 @@
 #include "memory.h"
 
-#include "ID_Extension.h"
-#include "RouterEvents.h"
-
 Memory::Memory(sc_core::sc_module_name module_name) : socket_target("socket"), LATENCY(10, SC_NS)   
 {
     readMem();
-    SC_THREAD(thread_process);
-}
+    //SC_THREAD(thread_process);
 
+    socket_target.register_nb_transport_fw(this, &Memory::nb_transport_fw);
+}
 
 void Memory::thread_process()  
 {
+    #if 0
     while (true) {
 
         // Wait for an event to pop out of the back end of the queue   
-        wait(RouterEvents::myEvent); 
+        //wait(routerEvents::myEvent); 
 
         //printf("ACCESING MEMORY\n");
 
@@ -86,7 +85,8 @@ void Memory::thread_process()
             this->socket_target->nb_transport_bw( *trans_pending, phase, delay_pending );  // Non-blocking transport call
         //break;           
     }
-} 
+    #endif
+}
 
 void Memory::readMem()
 {
@@ -94,7 +94,32 @@ void Memory::readMem()
     for (int i = 0; i < SIZE; i++) 
     {  
         mem[i] = 0xAA000000 | (rand() % 256);  
-        cout << "Memory Data: " <<hex << mem[i] << endl;
+        //cout << "Memory Data: " <<hex << mem[i] << endl;
     } 
 }
 
+tlm::tlm_sync_enum Memory::nb_transport_fw( tlm::tlm_generic_payload& trans,
+                                            tlm::tlm_phase& phase, sc_time& delay )
+{
+    sc_dt::uint64    adr = trans.get_address();
+    unsigned int     len = trans.get_data_length();
+    unsigned char*   byt = trans.get_byte_enable_ptr();
+    unsigned int     wid = trans.get_streaming_width();
+
+    std::cout << "MESSAGE RECEIVED!!!!!\n";
+
+    // Obliged to check the transaction attributes for unsupported features
+    // and to generate the appropriate error response
+    if (byt != 0) {
+        trans.set_response_status( tlm::TLM_BYTE_ENABLE_ERROR_RESPONSE );
+        return tlm::TLM_COMPLETED;
+    }
+    if (len > 4 || wid < len) {
+        trans.set_response_status( tlm::TLM_BURST_ERROR_RESPONSE );
+        return tlm::TLM_COMPLETED;
+    }
+
+    // Now queue the transaction until the annotated time has elapsed
+    //m_peq.notify( trans, phase, delay);
+    return tlm::TLM_ACCEPTED;
+}

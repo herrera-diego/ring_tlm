@@ -1,18 +1,56 @@
 #include "cpu.h"
 #include "ID_Extension.h"
 
-CPU::CPU(sc_core::sc_module_name module_name) : socket_initiator("socket")
-{   
-    SC_THREAD(thread_process);   
-} 
-
-void CPU::thread_process()   
+CPU::CPU(sc_core::sc_module_name module_name, unsigned int id) : sc_module(module_name), init_socket("init_socket")
 {
+    cpu_id = id;
 
-    for (int i = 0; i < 5; i++)   
-    {
-        std::cout << "Running thread of CPU: " << routerName << "\n";
-    }
+    init_socket.register_nb_transport_bw(this, &CPU::nb_transport_bw);
+
+    SC_THREAD(thread_process);
+}
+
+void CPU::thread_process()
+{
+    //if (cpu_id == 0) {
+        std::cout << "Running thread of CPU: " << cpu_id << "\n";
+
+        int i = 0;
+        tlm::tlm_generic_payload* trans;
+
+        tlm::tlm_phase phase = tlm::BEGIN_REQ;   
+        sc_time delay = sc_time(10, SC_NS);
+
+        int adr = rand();
+        tlm::tlm_command cmd = static_cast<tlm::tlm_command>(rand() % 2);
+
+        if (cmd == tlm::TLM_WRITE_COMMAND)
+            data[i % 16] = rand();
+
+        // Grab a new transaction from the memory manager
+        trans = m_mm.allocate();
+        trans->acquire();
+
+        // Set all attributes except byte_enable_length and extensions (unused)
+        trans->set_command( cmd );
+        trans->set_address( adr );
+        trans->set_data_ptr( reinterpret_cast<unsigned char*>(&data[i % 16]) );
+        trans->set_data_length( 4 );
+        trans->set_streaming_width( 4 ); // = data_length to indicate no streaming
+        trans->set_byte_enable_ptr( 0 ); // 0 indicates unused
+        trans->set_dmi_allowed( false ); // Mandatory initial value
+        trans->set_response_status( tlm::TLM_INCOMPLETE_RESPONSE ); // Mandatory initial value
+
+        std::cout << "Message from CPU: " << cpu_id << " Socket: " << init_socket.name() << " " << hex << adr << " " << name() << " new, cmd=" << (cmd ? 'W' : 'R') << ", data=" << hex << data[i % 16] << " at time " << sc_time_stamp() << endl;
+
+        tlm::tlm_sync_enum status = init_socket->nb_transport_fw(*trans, phase, delay);
+        //wait(100, SC_NS);
+    //}
+    //else {
+    //    std::cout << "Running thread of non valid CPU\n";
+    //}
+
+#if 0
 
     // TLM2 generic payload transaction
     tlm::tlm_generic_payload trans;
@@ -76,5 +114,16 @@ void CPU::thread_process()
         wait(100, SC_NS);
         
         id_extension->transaction_id++; 
-    }   
-}   
+    }
+#endif
+}
+
+tlm::tlm_sync_enum CPU::nb_transport_bw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_time& delay)
+{
+    // The timing annotation must be honored
+    //m_peq.notify( trans, phase, delay );
+    std::cout << "Message received! CPU: " << cpu_id << " Socket: " << init_socket.name() << " " << hex << trans.get_address()
+        << " " << name() << " new, cmd=" << (trans.get_command() ? 'W' : 'R') << endl;
+
+    return tlm::TLM_ACCEPTED;
+}
