@@ -7,6 +7,7 @@
 #include "tlm_utils/simple_initiator_socket.h"
 #include "tlm_utils/simple_target_socket.h"
 #include "tlm_utils/peq_with_cb_and_phase.h"
+#include "router.h"
 
 class CPU: public sc_module
 {
@@ -15,14 +16,12 @@ class CPU: public sc_module
         int                                     data;
         const char                              *routerName;
 
-        tlm_utils::simple_initiator_socket<CPU> socket_initiator;
-        tlm::tlm_generic_payload                *trans_pending;
-        tlm::tlm_phase                          phase_pending;
-        sc_time                                 delay_pending;
+        Router                                  cpuRouter;
+        sc_event *my_event_ptr; 
                 
         void thread_process();
 
-        CPU(sc_module_name name_) ;
+        CPU(sc_module_name name_, sc_event * e) ;
         
         SC_HAS_PROCESS(CPU);    
 

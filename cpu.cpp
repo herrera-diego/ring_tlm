@@ -1,7 +1,8 @@
 #include "cpu.h"
 #include "ID_Extension.h"
 
-CPU::CPU(sc_core::sc_module_name name_) : socket_initiator("socket")
+CPU::CPU(sc_core::sc_module_name name_, sc_event * e) :
+        sc_module(name_), my_event_ptr(e), cpuRouter("cpu",  e )
 {   
     SC_THREAD(thread_process);   
 } 
@@ -9,10 +10,10 @@ CPU::CPU(sc_core::sc_module_name name_) : socket_initiator("socket")
 void CPU::thread_process()   
 {
 
-    for (int i = 0; i < 5; i++)   
-    {
-        std::cout << "Running thread of CPU: " << routerName << "\n";
-    }
+    // for (int i = 0; i < 5; i++)   
+    // {
+    //     std::cout << "Running thread of CPU: " << name_ << "\n";
+    // }
 
     // TLM2 generic payload transaction
     tlm::tlm_generic_payload trans;
@@ -43,7 +44,7 @@ void CPU::thread_process()
         tlm::tlm_sync_enum status;   
         
         cout << name() << " BEGIN_REQ SENT" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;
-        status = socket_initiator->nb_transport_fw( trans, phase, delay );  // Non-blocking transport call   
+        status = cpuRouter.nb_transport_fw( trans, phase, delay );  // Non-blocking transport call   
 
         // Check value returned from nb_transport   
 
@@ -57,7 +58,7 @@ void CPU::thread_process()
                 cout << name() << " END_REQ SENT" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;
                 // Expect response on the backward path  
                 phase = tlm::END_REQ; 
-                status = socket_initiator->nb_transport_fw( trans, phase, delay );  // Non-blocking transport call
+                status = cpuRouter.nb_transport_fw( trans, phase, delay );  // Non-blocking transport call
                 break;   
 
             case tlm::TLM_UPDATED:   

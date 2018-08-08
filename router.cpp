@@ -7,7 +7,7 @@
 // TLM2 backward path non-blocking transport method   
 // *********************************************   
 Router::Router(sc_module_name name_, sc_event * e) :
-           sc_module(name_), my_event_ptr(e), socket_initiator("Initiator"), socket_target("Target"), LATENCY(10, SC_NS)
+        sc_module(name_), my_event_ptr(e), socket_initiator("Initiator" ), socket_target("Target" ), LATENCY(10, SC_NS)
 //Router::Router(sc_core::sc_module_name module_name) : socket_initiator("Initiator"), socket_target("Target"), LATENCY(10, SC_NS)
 {
     // Register callbacks for incoming interface method calls

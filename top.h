@@ -11,21 +11,21 @@ SC_MODULE(Top)
     //CPU           *initiator2;
     Memory          *memory;
 
-    Router          *router0;
+    //Router          *router0;
     // Router       *router1; 
     // Router       *router2;
 
-    sc_event *my_event_ptr;     
-   
+    sc_event *my_event_ptr; 
+
 
     SC_CTOR(Top)
     {
-        my_event_ptr = new sc_event; 
         // Instantiate components
-        initiator = new CPU("initiator");
-    
-        router0 = new Router("R0", my_event_ptr);
-        //router0.my_event_ptr(my_event_ptr);    
+         my_event_ptr = new sc_event; 
+
+        //router0 = new Router("R0", my_event_ptr);
+
+        initiator = new CPU("initiator", my_event_ptr);   
         //initiator2 = new CPU("initiator2");
         memory    = new Memory   ("memory", my_event_ptr);
         //memory->my_event_ptr(my_event_ptr);   
@@ -38,8 +38,16 @@ SC_MODULE(Top)
    
         // Bind initiator socket to target socket
         //initiator2->socket_initiator.bind(initiator->socket_target);
-        initiator->socket_initiator.bind(router0->socket_target);
-        router0->socket_initiator.bind(memory->socket_target);
+
+        // initiator->cpuRouter.socket_initiator.bind(router0->socket_target);
+        // router0->socket_initiator.bind(memory->memRouter.socket_target);
+        // memory->memRouter.socket_initiator.bind(initiator->cpuRouter.socket_target);
+
+
+        initiator->cpuRouter.socket_initiator.bind(memory->memRouter.socket_target);
+        memory->memRouter.socket_initiator.bind(initiator->cpuRouter.socket_target);
+
+
         //router1->socket_initiator.bind(router2->socket_target);
         //router2->socket_initiator.bind(memory->socket_target);
         //memory->socket_initiator.bind(initiator->socket_target);
