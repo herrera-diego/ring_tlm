@@ -1,29 +1,35 @@
 # ITCR - Diego Herrera
+
+TEST_FILE = non_blocking
+BIN_FILE = top
+
+SRC_DIR = ./src
+OBJ_DIR = ./obj
+INC_DIR = ./include
+TEST_DIR = ./example
+BIN_DIR = ./bin
+SRC_FILES = $(wildcard $(SRC_DIR)/*.cpp)
+OBJ_FILES = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
+
 ARCH=$(shell getconf LONG_BIT)
 SYSCDIR=/usr/local/systemc-2.3.2
 LDLIBS_32= -L$(SYSCDIR)/lib-linux -lsystemc -lm
 LDLIBS_64= -L$(SYSCDIR)/lib-linux64 -lsystemc -lm
 LDLIBS=$(LDLIBS_$(ARCH))
-CXXFLAGS=-Wno-deprecated -I$(SYSCDIR)/include
+
+CXXFLAGS = -Wno-deprecated -I$(SYSCDIR)/include -I$(INC_DIR)
 CXX=g++
 
-OUT_FILES=*.so *.o *.vcd *.h.gch
+$(BIN_DIR)/$(BIN_FILE).o: $(OBJ_FILES)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDLIBS)
 
-all: top
-
-top: top.h tb_top.cpp cpu memory 
-	$(CXX) $(CXXFLAGS) top.h tb_top.cpp cpu.o memory.o -o top.o $(LDLIBS) 
-	./top.o
-	#gtkwave -a top_config.gtkw ./top.vcd &
-
-cpu: cpu.cpp cpu.h ID_Extension.h
-	$(CXX) $(CXXFLAGS) -c cpu.h ID_Extension.h cpu.cpp $(LDLIBS)
-
-memory: memory.cpp memory.h ID_Extension.h
-	$(CXX) $(CXXFLAGS) -c memory.h ID_Extension.h memory.cpp $(LDLIBS)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $< $(LDLIBS)
 
 example:
-	$(CXX) $(CXXFLAGS) non_blocking.cpp -o non_blocking.o $(LDLIBS)
+	$(CXX) $(CXXFLAGS) $(TEST_DIR)/$(TEST_FILE).cpp -o $(BIN_DIR)/$(TEST_FILE).o $(LDLIBS)
+	$(BIN_DIR)/$(TEST_FILE).o
 
 clean:
-	rm -rf $(OUT_FILES)
+	rm -rf $(OBJ_DIR)/*.o
+	rm -rf $(BIN_DIR)/*.o
