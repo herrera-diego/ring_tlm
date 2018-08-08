@@ -1,7 +1,6 @@
-#include "router.h"
 
-#include "ID_Extension.h"
-#include "RouterEvents.h"
+#include "constants.h"
+#include "router.h"
 
 // *********************************************   
 // TLM2 backward path non-blocking transport method   
@@ -23,7 +22,6 @@ tlm::tlm_sync_enum Router::nb_transport_fw(int id, tlm::tlm_generic_payload& tra
     // Forward path
     m_id_map[ &trans ] = id;
 
-
     sc_dt::uint64 address = trans.get_address();
     sc_dt::uint64 masked_address;
     unsigned int target_nr = decode_address( address, masked_address);
@@ -33,22 +31,25 @@ tlm::tlm_sync_enum Router::nb_transport_fw(int id, tlm::tlm_generic_payload& tra
 
     tlm::tlm_sync_enum status;
 
-    if (router_id == 3) {
-        std::cout << "Sending message to CPU 3!\n";
-        // Forward transaction to appropriate target
+    trans.set_address( masked_address );
+
+    if (router_id == TOP_ROUTER) {
+
+        std::cout << "Sending message to Memory!\n";
         status = init_socket[1]->nb_transport_fw(trans, phase, delay);
 
     } else {
+
         std::cout << "Sending message to next CPU!\n";
-        tlm::tlm_sync_enum status = init_socket[0]->nb_transport_fw(trans, phase, delay);
+        status = init_socket[0]->nb_transport_fw(trans, phase, delay);
     }
     
     if (status == tlm::TLM_COMPLETED) {
         // Put back original address
         trans.set_address(address);
     }
-    
-    return tlm::TLM_COMPLETED;
+
+    return status;
 }
 
 tlm::tlm_sync_enum Router::nb_transport_bw(int id, tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_time& delay)

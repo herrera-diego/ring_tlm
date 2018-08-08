@@ -1,32 +1,41 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
+#include <queue>
+
 #include "systemc.h"
 #include "tlm.h"
 #include "tlm_utils/simple_target_socket.h"
+#include "tlm_utils/peq_with_cb_and_phase.h"
 
-#define SIZE 256
+#include "constants.h"
+
+DECLARE_EXTENDED_PHASE(internal_ph);
 
 class Memory: public sc_module
 {   
     public:
-        const sc_time                           LATENCY;
+        const sc_time                               LATENCY;
 
-        int                                     mem[SIZE];
+        int                                         mem[MEMORY_SIZE];
 
-        tlm_utils::simple_target_socket<Memory> socket_target;
-        tlm::tlm_generic_payload                *trans_pending;
-        tlm::tlm_phase                          phase_pending;
-        sc_time                                 delay_pending;
-        
+        tlm_utils::simple_target_socket<Memory>     socket_target;
+        int                                         n_trans;
+        bool                                        response_in_progress;
+        tlm::tlm_generic_payload                    *next_response_pending;
+        std::queue<tlm::tlm_generic_payload*>       end_req_pending;
+        tlm_utils::peq_with_cb_and_phase<Memory>    m_payload_event_queue;
+
+        SC_CTOR(Memory);
+
         // *********************************************   
         // Thread to call nb_transport on backward path   
         // ********************************************* 
-        void thread_process();
         void readMem();
-        
-        SC_CTOR(Memory);
 
         virtual tlm::tlm_sync_enum nb_transport_fw( tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_time& delay );
+        void peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase);
+        tlm::tlm_sync_enum send_end_req(tlm::tlm_generic_payload& trans);
+        void send_response(tlm::tlm_generic_payload& trans);
 };   
 #endif
