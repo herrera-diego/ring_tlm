@@ -2,8 +2,9 @@
 #include "ID_Extension.h"
 
 CPU::CPU(sc_core::sc_module_name name_, sc_event * e) :
-        sc_module(name_), my_event_ptr(e), cpuRouter("cpu",  e )
+        sc_module(name_), my_event_ptr(e), socket_initiator("CPUSocket")//, cpuRouter("cpu",  e )
 {   
+    socket_initiator.register_nb_transport_bw(  this, &CPU::nb_transport_bw);
     SC_THREAD(thread_process);   
 } 
 
@@ -44,7 +45,7 @@ void CPU::thread_process()
         tlm::tlm_sync_enum status;   
         
         cout << name() << " BEGIN_REQ SENT" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;
-        status = cpuRouter.nb_transport_fw( trans, phase, delay );  // Non-blocking transport call   
+        status = this->socket_initiator->nb_transport_fw( trans, phase, delay );  // Non-blocking transport call   
 
         // Check value returned from nb_transport   
 
@@ -58,7 +59,7 @@ void CPU::thread_process()
                 cout << name() << " END_REQ SENT" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;
                 // Expect response on the backward path  
                 phase = tlm::END_REQ; 
-                status = cpuRouter.nb_transport_fw( trans, phase, delay );  // Non-blocking transport call
+                status = this->socket_initiator->nb_transport_fw( trans, phase, delay );  // Non-blocking transport call
                 break;   
 
             case tlm::TLM_UPDATED:   
@@ -79,3 +80,43 @@ void CPU::thread_process()
         id_extension->transaction_id++; 
     }   
 }   
+
+tlm::tlm_sync_enum CPU::nb_transport_bw( tlm::tlm_generic_payload& trans,
+                                            tlm::tlm_phase& phase, sc_time& delay ) 
+{
+    tlm::tlm_command cmd = trans.get_command();
+    sc_dt::uint64    adr = trans.get_address();
+
+    ID_extension* id_extension = new ID_extension;
+    trans.get_extension( id_extension );
+
+    if (phase == tlm::END_RESP) {
+
+        //Delay for TLM_COMPLETE
+        wait(delay);
+
+        cout << name() << " END_RESP RECEIVED" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;
+
+        return tlm::TLM_COMPLETED;
+
+    }
+
+    if (phase == tlm::BEGIN_RESP) {
+
+        // Initiator obliged to check response status
+        if (trans.is_response_error() )
+        SC_REPORT_ERROR("TLM2", "Response error from nb_transport");
+
+        cout << "trans/bw = { " << (cmd ? 'W' : 'R') << ", " << hex << adr
+            << " } , data = " << hex << data << " at time " << sc_time_stamp()
+            << ", delay = " << delay << endl;
+        
+        //Delay
+        wait(delay);
+        
+        cout << name () << " BEGIN_RESP RECEIVED" << " TRANS ID " << id_extension->transaction_id << " at time " << sc_time_stamp() << endl;
+
+        return tlm::TLM_ACCEPTED;
+    }
+}
+

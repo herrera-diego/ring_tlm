@@ -29,7 +29,7 @@ class Router: public sc_core::sc_module
         const sc_time 					            LATENCY;
   
         //sc_event  e1;
-        sc_event  procEvent;
+        //sc_event  procEvent;
         tlm::tlm_generic_payload 			        *trans_pending;
         tlm::tlm_phase                              phase_pending;
         sc_time                                     delay_pending;

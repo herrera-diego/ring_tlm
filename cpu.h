@@ -14,9 +14,13 @@ class CPU: public sc_module
     public:
         // Internal data buffer used by initiator with generic payload
         int                                     data;
-        const char                              *routerName;
+        tlm_utils::simple_initiator_socket<CPU> 	socket_initiator;
 
-        Router                                  cpuRouter;
+         virtual tlm::tlm_sync_enum nb_transport_bw( tlm::tlm_generic_payload& trans,
+                                                    tlm::tlm_phase& phase, sc_time& delay ) ;
+ 
+
+        //Router                                  cpuRouter;
         sc_event *my_event_ptr; 
                 
         void thread_process();
