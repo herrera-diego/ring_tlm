@@ -14,9 +14,11 @@
 
 TEST_FILE = non_blocking
 BIN_FILE = top
+DEBUG_FILE = debug
 
 SRC_DIR = ./src
 OBJ_DIR = ./obj
+DBG_DIR = ./debug
 INC_DIR = ./include
 TEST_DIR = ./example
 BIN_DIR = ./bin
@@ -39,7 +41,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $< $(LDLIBS)
 
 debug:
-	$(CXX) $(CXXFLAGS) -g $(SRC_FILES) -o ./debug/debug.o $(LDLIBS)
+	$(CXX) $(CXXFLAGS) -g $(SRC_FILES) -o  $(DBG_DIR)/$(DEBUG_FILE).o $(LDLIBS)
 
 example:
 	$(CXX) $(CXXFLAGS) $(TEST_DIR)/$(TEST_FILE).cpp -o $(BIN_DIR)/$(TEST_FILE).o $(LDLIBS)
