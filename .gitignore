@@ -4,3 +4,5 @@ top.o
 router.o
 common_rand.o
 memory_manager.o
+debug.o
+tb_top.o
