@@ -10,7 +10,7 @@
 
 #define MEMORY_SIZE         256
 
-#define NUM_TRANSACTIONS    100
+#define NUM_TRANSACTIONS    1000
 
 inline unsigned int decode_address(sc_dt::uint64 address, sc_dt::uint64& masked_address)
 {
