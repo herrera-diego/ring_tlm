@@ -1,3 +1,17 @@
+/*******************************************************
+ *  Instituto Tecnologico de Costa Rica
+ *
+ *  Diseño de Alto Nivel de Sistema Electrónicos
+ *
+ *  Proyecto 2 (Grupo 1)
+ *
+ *  Mario Castro    200827325
+ *  Diego Herrera   200324558
+ *  Fernando París  200510153
+ *  Esteban Rivera  2018319491
+ *  Kevin Víquez    200944341
+ *******************************************************/
+
 #ifndef __MEMORY_MANAGER_H__
 #define __MEMORY_MANAGER_H__
 
@@ -25,3 +39,4 @@ class memory_manager: public tlm::tlm_mm_interface
 };
 
 #endif
+
