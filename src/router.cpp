@@ -20,14 +20,18 @@ tlm::tlm_sync_enum Router::nb_transport_fw(int id, tlm::tlm_generic_payload& tra
     assert (id < target_socket.size());
 
     // Forward path
-    m_id_map[ &trans ] = id;
+    m_id_map[&trans] = id;
 
     sc_dt::uint64 address = trans.get_address();
     sc_dt::uint64 masked_address;
     unsigned int target_nr = decode_address( address, masked_address);
 
-    std::cout << "Router: " << router_id << " Caller: " << target_socket.name() << " ID: " << id
-        << " Socket.size(): " << target_socket.size() << "\n";
+    std::cout << "---------> Outgoing msg from Router: " << router_id
+              << ", Target_Socket: " << target_socket.name()
+              << ", Id: " << id
+              << ", Init_Socket: " << init_socket.name()
+              << ", Phase: " << phase
+              << ", Time: " << sc_time_stamp() << "\n";
 
     tlm::tlm_sync_enum status;
 
@@ -35,12 +39,12 @@ tlm::tlm_sync_enum Router::nb_transport_fw(int id, tlm::tlm_generic_payload& tra
 
     if (router_id == TOP_ROUTER) {
 
-        std::cout << "Sending message to Memory!\n";
+        //std::cout << "Sending message to Memory!\n";
         status = init_socket[1]->nb_transport_fw(trans, phase, delay);
 
     } else {
 
-        std::cout << "Sending message to next CPU!\n";
+        //std::cout << "Sending message to next CPU!\n";
         status = init_socket[0]->nb_transport_fw(trans, phase, delay);
     }
     
@@ -56,25 +60,17 @@ tlm::tlm_sync_enum Router::nb_transport_bw(int id, tlm::tlm_generic_payload& tra
 {
     assert (id < init_socket.size());
 
-    // Backward path
-
     // Replace original address
     sc_dt::uint64 address = trans.get_address();
+    //trans.set_address(compose_address(decode_destination(address), decode_source(address) , address));
     trans.set_address(compose_address(id, address));
 
+    std::cout << "<--------- Incoming msg from Router: " << router_id
+              << ", Init_Socket: " << init_socket.name()
+              << ", Id: " << id
+              << ", Target_Socket: " << target_socket.name()
+              << ", Phase: " << phase
+              << ", Time: " << sc_time_stamp() << "\n";
+
     return target_socket[ m_id_map[ &trans ] ]->nb_transport_bw(trans, phase, delay);
-}
-
-// Simple fixed address decoding
-// In this example, for clarity, the address is passed through unmodified to the target
-inline unsigned int Router::decode_address(sc_dt::uint64 address, sc_dt::uint64& masked_address)
-{
-    unsigned int target_nr = static_cast<unsigned int>( address & 0x1 );
-    masked_address = address;
-    return target_nr;
-}
-
-inline sc_dt::uint64 Router::compose_address(unsigned int target_nr, sc_dt::uint64 address)
-{
-    return address;
 }

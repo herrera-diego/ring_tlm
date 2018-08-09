@@ -1,5 +1,5 @@
-#ifndef TOP_H
-#define TOP_H
+#ifndef __TOP_H__
+#define __TOP_H__
 
 #include "systemc.h"
 
@@ -16,8 +16,12 @@ SC_MODULE(Top)
 
     SC_CTOR(Top)
     {
+        // Memory initialization
+        memory    = new Memory("Memory");
+
         // Instantiate components
         for (int i = 0; i < MAX_NUM_CPU; i++) {
+
             char txt[10];
             sprintf(txt, "CPU_%d", i);
 
@@ -26,7 +30,8 @@ SC_MODULE(Top)
             cpu[i] = new CPU(txt, i);
         }
     
-        for (int i = 0; i < MAX_NUM_ROUTER; i++) {
+        for (int i = 0; i < MAX_NUM_ROUTER - 1; i++) {
+
             char txt[10];
             sprintf(txt, "Router_%d", i);
 
@@ -35,8 +40,8 @@ SC_MODULE(Top)
             router[i] = new Router(txt, i);
         }
 
-        // Memory initialization
-        memory    = new Memory("memory");
+        // Create Router 7 (Always has to be present!)
+        router[MAX_NUM_ROUTER - 1] = new Router("Router_7", TOP_ROUTER);
 
         for (int i = 0; i < MAX_NUM_CPU; i++) {
             cpu[i]->init_socket.bind(router[i]->target_socket);
@@ -54,7 +59,7 @@ SC_MODULE(Top)
         }
 
         // Path to Memory
-        router[TOP_ROUTER]->init_socket.bind(memory->socket_target);
+        router[MAX_NUM_ROUTER - 1]->init_socket.bind(memory->target_socket);
     }
 };   
-#endif
+#endif //__TOP_H__
