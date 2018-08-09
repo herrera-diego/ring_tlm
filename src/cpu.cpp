@@ -21,11 +21,7 @@ void CPU::thread_process()
     sc_time delay;
 
     // Generate a sequence of random transactions
-<<<<<<< HEAD
-    for (int i = 0; i < 2; i++)
-=======
     for (int i = 0; i < NUM_TRANSACTIONS; i++)
->>>>>>> 16bc98885b6aca6caca01e5fa7c54237b0b93470
     {
         int adr = rand() % MEMORY_SIZE;
         tlm::tlm_command cmd = static_cast<tlm::tlm_command>(rand() % 2);

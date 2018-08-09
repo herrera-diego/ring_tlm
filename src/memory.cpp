@@ -8,7 +8,7 @@
 
 
 Memory::Memory(sc_core::sc_module_name module_name)
-    : socket_target("socket"),
+    : target_socket("target_socket"),
       m_payload_event_queue("Memory_PEQ", this, &Memory::peq_cb),
       LATENCY(10, SC_NS),
       n_trans(0),
@@ -16,18 +16,17 @@ Memory::Memory(sc_core::sc_module_name module_name)
       next_response_pending(NULL),
       end_req_pending()
 {
-    readMem();
+    init_memory();
 
-    socket_target.register_nb_transport_fw(this, &Memory::nb_transport_fw);
+    target_socket.register_nb_transport_fw(this, &Memory::nb_transport_fw);
 }
 
-void Memory::readMem()
+void Memory::init_memory()
 {
     // Initialize memory with random data   
-    for (int i = 0; i < MEMORY_SIZE; i++) 
+    for (int i = 0; i < MEMORY_SIZE; i++)
     {  
-        mem[i] = 0xAA000000 | (rand() % MEMORY_SIZE);  
-        //cout << "Memory Data: " <<hex << mem[i] << endl;
+        mem[i] = rand();
     }
 }
 
@@ -39,14 +38,24 @@ tlm::tlm_sync_enum Memory::nb_transport_fw(tlm::tlm_generic_payload& trans,
     unsigned char*   byt = trans.get_byte_enable_ptr();
     unsigned int     wid = trans.get_streaming_width();
 
+    std::cout << ">>>>>>>>>> Outgoing msg received in Memory: " << name()
+              << ", Target_Socket: " << target_socket.name()
+              << ", Phase: " << phase
+              << ", Addr: " << dec << adr
+              << ", Msg len: " << len
+              << ", Data: " << *reinterpret_cast<int *>(&byt)
+              << ", Time: " << sc_time_stamp() << "\n";
+
     // Obliged to check the transaction attributes for unsupported features
     // and to generate the appropriate error response
     if (byt != 0) {
+
         trans.set_response_status( tlm::TLM_BYTE_ENABLE_ERROR_RESPONSE );
         return tlm::TLM_COMPLETED;
     }
 
     if (len > 4 || wid < len) {
+
         trans.set_response_status( tlm::TLM_BURST_ERROR_RESPONSE );
         return tlm::TLM_COMPLETED;
     }
@@ -61,11 +70,16 @@ void Memory::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase
     tlm::tlm_sync_enum status;
     sc_time delay;
 
+    std::cout << "<-<-<-<-<- Outgoing msg from Memory: " << name()
+              << ", Target_Socket: " << target_socket.name()
+              << ", Phase: " << phase
+              << ", Cmd: " << (trans.get_command() ? 'W' : 'R')
+              << ", Addr: " << dec << trans.get_address()
+              << ", Time: " << sc_time_stamp() << "\n";
+
     switch (phase) {
 
     case tlm::BEGIN_REQ:
-        std::cout << hex << trans.get_address() << " " << name() << " BEGIN_REQ at " << sc_time_stamp() << endl;
-
         // Increment the transaction reference count
         trans.acquire();
 
@@ -88,8 +102,6 @@ void Memory::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase
         // On receiving END_RESP, the target can release the transaction
         // and allow other pending transactions to proceed
 
-        std::cout << hex << trans.get_address() << " " << name() << " END_RESP at " << sc_time_stamp() << endl;
-
         if (!response_in_progress) {
             SC_REPORT_FATAL("TLM-2", "Illegal transaction phase END_RESP received by target");
         }
@@ -102,14 +114,14 @@ void Memory::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase
 
         if (next_response_pending) {
 
-            send_response( *next_response_pending );
+            send_response(*next_response_pending);
             next_response_pending = 0;
         }
 
         // ... and to unblock the initiator by issuing END_REQ
         if (!end_req_pending.empty()) {
 
-            status = send_end_req( *end_req_pending.front() );
+            status = send_end_req(*end_req_pending.front());
             end_req_pending.pop();
         }
 
@@ -121,33 +133,37 @@ void Memory::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase
             break;
 
     default:
-        if (phase == internal_ph)
-        {
-            // Execute the read or write commands
+        if (phase == internal_ph) {
 
+            // Execute the read or write commands
             tlm::tlm_command cmd = trans.get_command();
             sc_dt::uint64    adr = trans.get_address();
             unsigned char*   ptr = trans.get_data_ptr();
             unsigned int     len = trans.get_data_length();
 
-            if ( cmd == tlm::TLM_READ_COMMAND )
-            {
-                //reinterpret_cast<int*>(ptr) = rand();
-                if (adr < MEMORY_SIZE) {
-                    trans.set_data_ptr(reinterpret_cast<unsigned char *>(&mem[adr]));
-                }
+            if (adr >= MEMORY_SIZE) {
+                SC_REPORT_FATAL("TLM-2", "Attempt to execute command beyond memory boundaries!");
+            }
 
-                std::cout   << hex << adr << " " << name() << " Execute READ, target = " << name()
-                            << " data = " << mem[adr] << endl;
+            if ( cmd == tlm::TLM_READ_COMMAND ) {
+
+                trans.set_data_ptr(reinterpret_cast<unsigned char *>(&mem[adr]));
+
+                std::cout << "********** Processing msg in Memory: " << name()
+                          << ", Executing: READ"
+                          << ", Addr: " << dec << adr
+                          << ", Data: " << mem[adr]
+                          << ", Time: " << sc_time_stamp() << "\n";
             }
             else if ( cmd == tlm::TLM_WRITE_COMMAND ) {
 
-                if (adr < MEMORY_SIZE) {
-                    mem[adr] = *reinterpret_cast<int*>(ptr);
-                }
+                mem[adr] = *reinterpret_cast<int*>(ptr);
 
-                std::cout   << hex << adr << " " << name() << " Execute WRITE, target = " << name()
-                            << " data = " << *reinterpret_cast<int*>(ptr) << endl;
+                std::cout << "********** Processing msg in Memory: " << name()
+                          << ", Executing: WRITE"
+                          << ", Addr: " << dec << adr
+                          << ", Data: " << *reinterpret_cast<int*>(ptr)
+                          << ", Time: " << sc_time_stamp() << "\n";
             }
 
             trans.set_response_status( tlm::TLM_OK_RESPONSE );
@@ -180,7 +196,14 @@ tlm::tlm_sync_enum Memory::send_end_req(tlm::tlm_generic_payload& trans)
     // Queue the acceptance and the response with the appropriate latency
     bw_phase = tlm::END_REQ;
     delay = sc_time(rand_ps(), SC_PS); // Accept delay
-    status = socket_target->nb_transport_bw( trans, bw_phase, delay );
+
+    std::cout << "<-<-<-<-<- Outgoing msg from Memory: " << name()
+              << ", Target_Socket: " << target_socket.name()
+              << ", Phase: " << bw_phase
+              << ", Time: " << sc_time_stamp() << "\n";
+
+    // Send Message to Router
+    status = target_socket->nb_transport_bw( trans, bw_phase, delay );
 
     if (status == tlm::TLM_COMPLETED) {
 
@@ -207,7 +230,14 @@ void Memory::send_response(tlm::tlm_generic_payload& trans)
     response_in_progress = true;
     bw_phase = tlm::BEGIN_RESP;
     delay = SC_ZERO_TIME;
-    status = socket_target->nb_transport_bw(trans, bw_phase, delay);
+
+    std::cout << "<-<-<-<-<- Outgoing msg from Memory: " << name()
+              << ", Target_Socket: " << target_socket.name()
+              << ", Phase: " << bw_phase
+              << ", Time: " << sc_time_stamp() << "\n";
+
+    // Send Message to Router
+    status = target_socket->nb_transport_bw(trans, bw_phase, delay);
 
     if (status == tlm::TLM_UPDATED) {
 

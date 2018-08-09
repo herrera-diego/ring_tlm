@@ -1,12 +1,10 @@
 # ITCR - Diego Herrera
 
 TEST_FILE = non_blocking
-DEBUG = debug
 BIN_FILE = top
 
 SRC_DIR = ./src
 OBJ_DIR = ./obj
-DBG_DIR = ./debug
 INC_DIR = ./include
 TEST_DIR = ./example
 BIN_DIR = ./bin
@@ -28,10 +26,6 @@ $(BIN_DIR)/$(BIN_FILE).o: $(OBJ_FILES)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $< $(LDLIBS)
 
-debug: 
-	$(CXX) $(CXXFLAGS) -g $(SRC_FILES) -o  $(DBG_DIR)/$(DEBUG).o $(LDLIBS)
-
-
 example:
 	$(CXX) $(CXXFLAGS) $(TEST_DIR)/$(TEST_FILE).cpp -o $(BIN_DIR)/$(TEST_FILE).o $(LDLIBS)
 	$(BIN_DIR)/$(TEST_FILE).o
@@ -39,5 +33,3 @@ example:
 clean:
 	rm -rf $(OBJ_DIR)/*.o
 	rm -rf $(BIN_DIR)/*.o
-
-.PHONY: debug
