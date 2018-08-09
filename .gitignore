@@ -3,3 +3,4 @@ memory.o
 top.o
 router.o
 common_rand.o
+memory_manager.o
