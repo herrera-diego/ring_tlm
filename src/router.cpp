@@ -54,6 +54,8 @@ tlm::tlm_sync_enum Router::nb_transport_fw(int id, tlm::tlm_generic_payload& tra
 
 tlm::tlm_sync_enum Router::nb_transport_bw(int id, tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_time& delay)
 {
+    int socket;
+
     assert (id < init_socket.size());
 
     // Backward path
@@ -62,7 +64,10 @@ tlm::tlm_sync_enum Router::nb_transport_bw(int id, tlm::tlm_generic_payload& tra
     sc_dt::uint64 address = trans.get_address();
     trans.set_address(compose_address(id, address));
 
-    return target_socket[ m_id_map[ &trans ] ]->nb_transport_bw(trans, phase, delay);
+    socket = m_id_map[&trans];
+    m_id_map.erase(&trans);
+
+    return target_socket[socket]->nb_transport_bw(trans, phase, delay);
 }
 
 // Simple fixed address decoding
