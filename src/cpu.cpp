@@ -21,13 +21,16 @@ void CPU::thread_process()
     sc_time delay;
 
     // Generate a sequence of random transactions
+<<<<<<< HEAD
     for (int i = 0; i < 2; i++)
+=======
+    for (int i = 0; i < NUM_TRANSACTIONS; i++)
+>>>>>>> 16bc98885b6aca6caca01e5fa7c54237b0b93470
     {
         int adr = rand() % MEMORY_SIZE;
         tlm::tlm_command cmd = static_cast<tlm::tlm_command>(rand() % 2);
         
         if (cmd == tlm::TLM_WRITE_COMMAND) {
-            //data[i % 16] = rand();
             data = rand();
         }
 
@@ -38,7 +41,6 @@ void CPU::thread_process()
         // Set all attributes except byte_enable_length and extensions (unused)
         trans->set_command( cmd );
         trans->set_address( adr );
-        //trans->set_data_ptr( reinterpret_cast<unsigned char*>(&data[i % 16]) );
         trans->set_data_ptr( reinterpret_cast<unsigned char *>(&data) );
         trans->set_data_length( 4 );
         trans->set_streaming_width( 4 ); // = data_length to indicate no streaming
@@ -57,14 +59,14 @@ void CPU::thread_process()
         // Timing annotation models processing time of initiator prior to call
         delay = sc_time(rand_ps(), SC_PS);
         
-        std::cout << "Message from CPU: " << cpu_id << " Socket: " << init_socket.name() << " "
-                  << hex << adr << " " << name() << " new, cmd=" << (cmd ? 'W' : 'R') << dec << ", data="
-                  << hex << data << " at time " << sc_time_stamp() << endl;
-        
-        /*
-        std::cout << hex << adr << " " << name() << " new, cmd=" << (cmd ? 'W' : 'R')
-                  << ", data=" << hex << data[i % 16] << " at time " << sc_time_stamp() << endl;
-        */
+        std::cout << ">>>>>>>>>> Outgoing msg from CPU: " << cpu_id
+                  << ", Transanction: " << i
+                  << ", Socket name: " << init_socket.name()
+                  << ", Phase: " << phase
+                  << ", Cmd: " << (cmd ? 'W' : 'R')
+                  << ", Addr: " << dec << adr
+                  << ", Data: " << data
+                  << ", Time: " << sc_time_stamp() << "\n";
 
         // Non-blocking transport call on the forward path
         tlm::tlm_sync_enum status;
@@ -84,16 +86,22 @@ void CPU::thread_process()
             // The target has terminated the transaction
             check_transaction( *trans );
         }
-        wait(sc_time(rand_ps(), SC_PS));
+
+        wait(sc_time(rand_ps(), SC_NS));
     }
+
+    std::cout << "Done!\n";
 }
 
 tlm::tlm_sync_enum CPU::nb_transport_bw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_time& delay)
 {
-    // The timing annotation must be honored
-    //m_peq.notify( trans, phase, delay );
-    std::cout << "Message received! CPU: " << cpu_id << " Socket: " << init_socket.name() << " " << hex << trans.get_address()
-              << " " << name() << " new, cmd=" << (trans.get_command() ? 'W' : 'R') << endl;
+    std::cout << "<<<<<<<<<< Incoming msg received in CPU: " << cpu_id
+              << ", Socket name: " << init_socket.name()
+              << ", Phase: " << phase
+              << ", Cmd: " << (trans.get_command() ? 'W' : 'R')
+              << ", Addr: " << dec << trans.get_address()
+              << ", Data: " << *reinterpret_cast<int*>(trans.get_data_ptr())
+              << ", Time: " << sc_time_stamp() << "\n";
 
     m_payload_event_queue.notify(trans, phase, delay);
 
@@ -102,20 +110,13 @@ tlm::tlm_sync_enum CPU::nb_transport_bw(tlm::tlm_generic_payload& trans, tlm::tl
 
 void CPU::check_transaction(tlm::tlm_generic_payload& trans)
 {
-    if ( trans.is_response_error() )
-    {
+    if (trans.is_response_error()) {
+
         char txt[100];
         sprintf(txt, "Transaction returned with error, response status = %s",
         trans.get_response_string().c_str());
         SC_REPORT_ERROR("TLM-2", txt);
     }
-
-    tlm::tlm_command cmd = trans.get_command();
-    sc_dt::uint64    adr = trans.get_address();
-    int*             ptr = reinterpret_cast<int*>( trans.get_data_ptr() );
-
-    std::cout << hex << adr << " " << name() << " check, cmd=" << (cmd ? 'W' : 'R')
-              << ", data=" << hex << *ptr << " at time " << sc_time_stamp() << endl;
 
     // Allow the memory manager to free the transaction object
     trans.release();
@@ -123,16 +124,15 @@ void CPU::check_transaction(tlm::tlm_generic_payload& trans)
 
 void CPU::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase)
 {
-
-    if (phase == tlm::END_REQ) {
-        std::cout << hex << trans.get_address() << " " << name() << " END_REQ at " << sc_time_stamp() << endl;
-    }
-    else if (phase == tlm::BEGIN_RESP) {
-        std::cout << hex << trans.get_address() << " " << name() << " BEGIN_RESP at " << sc_time_stamp() << endl;
-    }
-
     if (phase == tlm::END_REQ || (&trans == request_in_progress && phase == tlm::BEGIN_RESP))
     {
+        std::cout << "->->->->-> Transaction DONE! CPU: " << cpu_id
+                  << ", Socket name: " << init_socket.name()
+                  << ", Phase: " << phase
+                  << ", Cmd: " << (trans.get_command() ? 'W' : 'R')
+                  << ", Addr: " << dec << trans.get_address()
+                  << ", Time: " << sc_time_stamp() << "\n";
+
         // The end of the BEGIN_REQ phase
         request_in_progress = NULL;
         end_request_event.notify();
@@ -149,6 +149,14 @@ void CPU::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase)
         // Send final phase transition to target
         tlm::tlm_phase fw_phase = tlm::END_RESP;
         sc_time delay = sc_time(rand_ps(), SC_PS);
+
+        std::cout << "->->->->-> Outgoing msg from CPU: " << cpu_id
+                  << ", Socket name: " << init_socket.name()
+                  << ", Phase: " << fw_phase
+                  << ", Cmd: " << (trans.get_command() ? 'W' : 'R')
+                  << ", Addr: " << dec << trans.get_address()
+                  << ", Time: " << sc_time_stamp() << "\n";
+
         init_socket->nb_transport_fw( trans, fw_phase, delay );
         // Ignore return value
     }
