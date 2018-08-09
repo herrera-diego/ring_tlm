@@ -41,8 +41,6 @@ class Memory: public sc_module
         std::queue<tlm::tlm_generic_payload*>       end_req_pending;
         tlm_utils::peq_with_cb_and_phase<Memory>    m_payload_event_queue;
 
-        const sc_time                               LATENCY;
-
         int                                         mem[MEMORY_SIZE];
         int                                         n_trans;
 

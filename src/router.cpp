@@ -6,7 +6,7 @@
 // TLM2 backward path non-blocking transport method   
 // *********************************************   
 
-Router::Router(sc_core::sc_module_name module_name, unsigned int id) : init_socket("Initiator"), target_socket("Target"), LATENCY(10, SC_NS)
+Router::Router(sc_core::sc_module_name module_name, unsigned int id) : init_socket("Initiator"), target_socket("Target")
 {
     router_id = id;
 
