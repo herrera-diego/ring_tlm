@@ -48,10 +48,7 @@ class Router : public sc_core::sc_module
         // *********************************************
         // Class attributes
         // *********************************************
-<<<<<<< HEAD
-        //const sc_time 					                        LATENCY;
-=======
->>>>>>> 05a8a8cc7830ccb020aad391ce37be15cbfb9b45
+        
         int                                                     router_id;
 
         std::map <tlm::tlm_generic_payload*, unsigned int>      m_id_map;
