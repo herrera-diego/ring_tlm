@@ -67,7 +67,3 @@ inline unsigned int decode_src(sc_dt::uint64 address)
 }
 
 #endif //__CONSTANTS_H__
-=======
-#endif //__CONSTANTS_H__
-
->>>>>>> 05a8a8cc7830ccb020aad391ce37be15cbfb9b45
