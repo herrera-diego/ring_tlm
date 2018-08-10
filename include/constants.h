@@ -38,7 +38,6 @@ inline sc_dt::uint64 compose_address(unsigned int target_nr, sc_dt::uint64 addre
     return address;
 }
 
-<<<<<<< HEAD
 inline unsigned int decode_addr(sc_dt::uint64 address)
 {
     unsigned int masked_address = static_cast<unsigned int>( address & 0xFF );
