@@ -21,10 +21,6 @@ int rand_ps()
 {
     int n = rand() % 100;
     n = n * n * n;
-<<<<<<< HEAD
     return n/100;
 }
-=======
-    return n / 100;
-}
->>>>>>> 05a8a8cc7830ccb020aad391ce37be15cbfb9b45
+
