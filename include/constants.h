@@ -10,7 +10,7 @@
 
 #define MEMORY_SIZE         256
 
-#define NUM_TRANSACTIONS    1000
+#define NUM_TRANSACTIONS    7
 
 inline unsigned int decode_address(sc_dt::uint64 address, sc_dt::uint64& masked_address)
 {
@@ -22,6 +22,33 @@ inline unsigned int decode_address(sc_dt::uint64 address, sc_dt::uint64& masked_
 inline sc_dt::uint64 compose_address(unsigned int target_nr, sc_dt::uint64 address)
 {
     return address;
+}
+
+inline unsigned int decode_addr(sc_dt::uint64 address)
+{
+    unsigned int masked_address = static_cast<unsigned int>( address & 0xFF );
+    return masked_address;
+}
+
+inline unsigned int decode_transID(sc_dt::uint64 address)
+{
+    unsigned int masked_address = static_cast<unsigned int>( address & 0xFFFF00000 );
+    masked_address = masked_address >> 20;
+    return masked_address;
+}
+
+inline unsigned int decode_dest(sc_dt::uint64 address)
+{
+    unsigned int dest = static_cast<unsigned int>( address & 0xF00 );
+    dest = dest >> 8;
+    return dest;
+}
+
+inline unsigned int decode_src(sc_dt::uint64 address)
+{
+    unsigned int src = static_cast<unsigned int>( address & 0xFF000 );
+    src = src >> 12;
+    return src;
 }
 
 #endif //__CONSTANTS_H__

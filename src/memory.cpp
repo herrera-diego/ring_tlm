@@ -39,9 +39,10 @@ tlm::tlm_sync_enum Memory::nb_transport_fw(tlm::tlm_generic_payload& trans,
     unsigned int     wid = trans.get_streaming_width();
 
     std::cout << ">>>>>>>>>> Outgoing msg received in Memory: " << name()
+              << ", Transaction: " << decode_transID(trans.get_address())
               << ", Target_Socket: " << target_socket.name()
               << ", Phase: " << phase
-              << ", Addr: " << dec << adr
+              << ", Addr: " << dec << decode_addr(adr)
               << ", Msg len: " << len
               << ", Data: " << *reinterpret_cast<int *>(&byt)
               << ", Time: " << sc_time_stamp() << "\n";
@@ -71,10 +72,11 @@ void Memory::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase
     sc_time delay;
 
     std::cout << "<-<-<-<-<- Outgoing msg from Memory: " << name()
+              << ", Transaction: " << decode_transID(trans.get_address())
               << ", Target_Socket: " << target_socket.name()
               << ", Phase: " << phase
               << ", Cmd: " << (trans.get_command() ? 'W' : 'R')
-              << ", Addr: " << dec << trans.get_address()
+              << ", Addr: " << dec << decode_addr(trans.get_address())
               << ", Time: " << sc_time_stamp() << "\n";
 
     switch (phase) {
@@ -141,6 +143,8 @@ void Memory::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase
             unsigned char*   ptr = trans.get_data_ptr();
             unsigned int     len = trans.get_data_length();
 
+            adr = decode_addr(adr);
+
             if (adr >= MEMORY_SIZE) {
                 SC_REPORT_FATAL("TLM-2", "Attempt to execute command beyond memory boundaries!");
             }
@@ -150,6 +154,7 @@ void Memory::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase
                 trans.set_data_ptr(reinterpret_cast<unsigned char *>(&mem[adr]));
 
                 std::cout << "********** Processing msg in Memory: " << name()
+                          << ", Transaction: " << decode_transID(trans.get_address())
                           << ", Executing: READ"
                           << ", Addr: " << dec << adr
                           << ", Data: " << mem[adr]
@@ -160,6 +165,7 @@ void Memory::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase
                 mem[adr] = *reinterpret_cast<int*>(ptr);
 
                 std::cout << "********** Processing msg in Memory: " << name()
+                          << ", Transaction: " << decode_transID(trans.get_address())
                           << ", Executing: WRITE"
                           << ", Addr: " << dec << adr
                           << ", Data: " << *reinterpret_cast<int*>(ptr)
@@ -198,6 +204,7 @@ tlm::tlm_sync_enum Memory::send_end_req(tlm::tlm_generic_payload& trans)
     delay = sc_time(rand_ps(), SC_PS); // Accept delay
 
     std::cout << "<-<-<-<-<- Outgoing msg from Memory: " << name()
+              << ", Transaction: " << decode_transID(trans.get_address())
               << ", Target_Socket: " << target_socket.name()
               << ", Phase: " << bw_phase
               << ", Time: " << sc_time_stamp() << "\n";
@@ -231,7 +238,11 @@ void Memory::send_response(tlm::tlm_generic_payload& trans)
     bw_phase = tlm::BEGIN_RESP;
     delay = SC_ZERO_TIME;
 
+
+    trans.set_address(decode_addr(trans.get_address()) | (decode_dest(trans.get_address()) << 8) | (TOP_ROUTER << 20));
+
     std::cout << "<-<-<-<-<- Outgoing msg from Memory: " << name()
+              << ", Transaction: " << decode_transID(trans.get_address())
               << ", Target_Socket: " << target_socket.name()
               << ", Phase: " << bw_phase
               << ", Time: " << sc_time_stamp() << "\n";

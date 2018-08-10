@@ -6,7 +6,7 @@
 // TLM2 backward path non-blocking transport method   
 // *********************************************   
 
-Router::Router(sc_core::sc_module_name module_name, unsigned int id) : init_socket("Initiator"), target_socket("Target"), LATENCY(10, SC_NS)
+Router::Router(sc_core::sc_module_name module_name, unsigned int id) : init_socket("Initiator"), target_socket("Target")
 {
     router_id = id;
 
@@ -24,9 +24,10 @@ tlm::tlm_sync_enum Router::nb_transport_fw(int id, tlm::tlm_generic_payload& tra
 
     sc_dt::uint64 address = trans.get_address();
     sc_dt::uint64 masked_address;
-    unsigned int target_nr = decode_address( address, masked_address);
-
+    unsigned int target_nr = decode_dest(address);
+    
     std::cout << "---------> Outgoing msg from Router: " << router_id
+              << ", Transaction: " << decode_transID(trans.get_address())
               << ", Target_Socket: " << target_socket.name()
               << ", Id: " << id
               << ", Init_Socket: " << init_socket.name()
@@ -35,9 +36,9 @@ tlm::tlm_sync_enum Router::nb_transport_fw(int id, tlm::tlm_generic_payload& tra
 
     tlm::tlm_sync_enum status;
 
-    trans.set_address( masked_address );
+    trans.set_address( address );
 
-    if (router_id == TOP_ROUTER) {
+    if (router_id == target_nr) {
 
         //std::cout << "Sending message to Memory!\n";
         status = init_socket[1]->nb_transport_fw(trans, phase, delay);
@@ -63,9 +64,10 @@ tlm::tlm_sync_enum Router::nb_transport_bw(int id, tlm::tlm_generic_payload& tra
     // Replace original address
     sc_dt::uint64 address = trans.get_address();
     //trans.set_address(compose_address(decode_destination(address), decode_source(address) , address));
-    trans.set_address(compose_address(id, address));
+    trans.set_address(address);
 
     std::cout << "<--------- Incoming msg from Router: " << router_id
+              << ", Transaction: " << decode_transID(trans.get_address())
               << ", Init_Socket: " << init_socket.name()
               << ", Id: " << id
               << ", Target_Socket: " << target_socket.name()

@@ -24,6 +24,13 @@ void CPU::thread_process()
     for (int i = 0; i < NUM_TRANSACTIONS; i++)
     {
         int adr = rand() % MEMORY_SIZE;
+
+        // adr = 0000 0000 0000 0000 0000 0000 0000 0000
+        //      |     id       |   src   |dest|  addr   |
+        adr = adr | (TOP_ROUTER << 8) | (cpu_id << 12) | (i+100*cpu_id << 20);
+
+       // cout << "XXXXX " << decode_transID(adr) << " " << i+100*cpu_id << " " << adr << "\n";
+
         tlm::tlm_command cmd = static_cast<tlm::tlm_command>(rand() % 2);
         
         if (cmd == tlm::TLM_WRITE_COMMAND) {
@@ -56,11 +63,11 @@ void CPU::thread_process()
         delay = sc_time(rand_ps(), SC_PS);
         
         std::cout << ">>>>>>>>>> Outgoing msg from CPU: " << cpu_id
-                  << ", Transanction: " << i
+                  << ", Transaction: " << i+100*cpu_id
                   << ", Socket name: " << init_socket.name()
                   << ", Phase: " << phase
                   << ", Cmd: " << (cmd ? 'W' : 'R')
-                  << ", Addr: " << dec << adr
+                  << ", Addr: " << dec << decode_addr(adr)
                   << ", Data: " << data
                   << ", Time: " << sc_time_stamp() << "\n";
 
@@ -92,10 +99,11 @@ void CPU::thread_process()
 tlm::tlm_sync_enum CPU::nb_transport_bw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_time& delay)
 {
     std::cout << "<<<<<<<<<< Incoming msg received in CPU: " << cpu_id
+              << ", Transaction: " << decode_transID(trans.get_address())
               << ", Socket name: " << init_socket.name()
               << ", Phase: " << phase
               << ", Cmd: " << (trans.get_command() ? 'W' : 'R')
-              << ", Addr: " << dec << trans.get_address()
+              << ", Addr: " << dec << decode_addr(trans.get_address())
               << ", Data: " << *reinterpret_cast<int*>(trans.get_data_ptr())
               << ", Time: " << sc_time_stamp() << "\n";
 
@@ -123,10 +131,11 @@ void CPU::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase)
     if (phase == tlm::END_REQ || (&trans == request_in_progress && phase == tlm::BEGIN_RESP))
     {
         std::cout << "->->->->-> Transaction DONE! CPU: " << cpu_id
+                  << ", Transaction: " << decode_transID(trans.get_address())
                   << ", Socket name: " << init_socket.name()
                   << ", Phase: " << phase
                   << ", Cmd: " << (trans.get_command() ? 'W' : 'R')
-                  << ", Addr: " << dec << trans.get_address()
+                  << ", Addr: " << dec << decode_addr(trans.get_address())
                   << ", Time: " << sc_time_stamp() << "\n";
 
         // The end of the BEGIN_REQ phase
@@ -147,10 +156,11 @@ void CPU::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase)
         sc_time delay = sc_time(rand_ps(), SC_PS);
 
         std::cout << "->->->->-> Outgoing msg from CPU: " << cpu_id
+                  << ", Transaction: " << decode_transID(trans.get_address())
                   << ", Socket name: " << init_socket.name()
                   << ", Phase: " << fw_phase
                   << ", Cmd: " << (trans.get_command() ? 'W' : 'R')
-                  << ", Addr: " << dec << trans.get_address()
+                  << ", Addr: " << dec << decode_addr(trans.get_address())
                   << ", Time: " << sc_time_stamp() << "\n";
 
         init_socket->nb_transport_fw( trans, fw_phase, delay );
