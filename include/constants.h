@@ -1,3 +1,17 @@
+/*******************************************************
+ *  Instituto Tecnologico de Costa Rica
+ *
+ *  Diseño de Alto Nivel de Sistema Electrónicos
+ *
+ *  Proyecto 2 (Grupo 1)
+ *
+ *  Mario Castro    200827325
+ *  Diego Herrera   200324558
+ *  Fernando París  200510153
+ *  Esteban Rivera  2018319491
+ *  Kevin Víquez    200944341
+ *******************************************************/
+
 #ifndef __CONSTANTS_H__
 #define __CONSTANTS_H__
 
@@ -24,6 +38,7 @@ inline sc_dt::uint64 compose_address(unsigned int target_nr, sc_dt::uint64 addre
     return address;
 }
 
+<<<<<<< HEAD
 inline unsigned int decode_addr(sc_dt::uint64 address)
 {
     unsigned int masked_address = static_cast<unsigned int>( address & 0xFF );
@@ -52,3 +67,7 @@ inline unsigned int decode_src(sc_dt::uint64 address)
 }
 
 #endif //__CONSTANTS_H__
+=======
+#endif //__CONSTANTS_H__
+
+>>>>>>> 05a8a8cc7830ccb020aad391ce37be15cbfb9b45

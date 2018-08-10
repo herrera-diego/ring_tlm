@@ -1,8 +1,20 @@
-# ITCR - Diego Herrera
+#######################################################
+#  Instituto Tecnologico de Costa Rica
+#
+#  Diseño de Alto Nivel de Sistema Electrónicos
+#
+#  Proyecto 2 (Grupo 1)
+#
+#  Mario Castro    200827325
+#  Diego Herrera   200324558
+#  Fernando París  200510153
+#  Esteban Rivera  2018319491
+#  Kevin Víquez  200944341
+#######################################################
 
 TEST_FILE = non_blocking
 BIN_FILE = top
-DEBUG = debug
+DEBUG_FILE = debug
 
 SRC_DIR = ./src
 OBJ_DIR = ./obj
@@ -29,7 +41,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $< $(LDLIBS)
 
 debug:
-	$(CXX) $(CXXFLAGS) -g $(SRC_FILES)  -o  $(DBG_DIR)/$(DEBUG).o $(LDLIBS)
+	$(CXX) $(CXXFLAGS) -g $(SRC_FILES) -o  $(DBG_DIR)/$(DEBUG_FILE).o $(LDLIBS)
 
 example:
 	$(CXX) $(CXXFLAGS) $(TEST_DIR)/$(TEST_FILE).cpp -o $(BIN_DIR)/$(TEST_FILE).o $(LDLIBS)

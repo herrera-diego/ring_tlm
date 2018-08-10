@@ -1,3 +1,17 @@
+/*******************************************************
+ *  Instituto Tecnologico de Costa Rica
+ *
+ *  Diseño de Alto Nivel de Sistema Electrónicos
+ *
+ *  Proyecto 2 (Grupo 1)
+ *
+ *  Mario Castro    200827325
+ *  Diego Herrera   200324558
+ *  Fernando París  200510153
+ *  Esteban Rivera  2018319491
+ *  Kevin Víquez    200944341
+ *******************************************************/
+
 #include <queue>
 
 #include "tlm_utils/peq_with_cb_and_phase.h"
@@ -10,7 +24,6 @@
 Memory::Memory(sc_core::sc_module_name module_name)
     : target_socket("target_socket"),
       m_payload_event_queue("Memory_PEQ", this, &Memory::peq_cb),
-      LATENCY(10, SC_NS),
       n_trans(0),
       response_in_progress(false),
       next_response_pending(NULL),

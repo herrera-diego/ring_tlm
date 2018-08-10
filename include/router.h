@@ -1,3 +1,17 @@
+/*******************************************************
+ *  Instituto Tecnologico de Costa Rica
+ *
+ *  Diseño de Alto Nivel de Sistema Electrónicos
+ *
+ *  Proyecto 2 (Grupo 1)
+ *
+ *  Mario Castro    200827325
+ *  Diego Herrera   200324558
+ *  Fernando París  200510153
+ *  Esteban Rivera  2018319491
+ *  Kevin Víquez    200944341
+ *******************************************************/
+
 #ifndef ROUTER_H
 #define ROUTER_H
 
@@ -34,7 +48,10 @@ class Router : public sc_core::sc_module
         // *********************************************
         // Class attributes
         // *********************************************
+<<<<<<< HEAD
         //const sc_time 					                        LATENCY;
+=======
+>>>>>>> 05a8a8cc7830ccb020aad391ce37be15cbfb9b45
         int                                                     router_id;
 
         std::map <tlm::tlm_generic_payload*, unsigned int>      m_id_map;
@@ -43,3 +60,4 @@ class Router : public sc_core::sc_module
 };
 
 #endif
+
