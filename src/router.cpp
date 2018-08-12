@@ -32,33 +32,32 @@ tlm::tlm_sync_enum Router::nb_transport_fw(int id, tlm::tlm_generic_payload& tra
 {
     assert (id < target_socket.size());
 
-    // Forward path
-    m_id_map[&trans] = id;
-
     sc_dt::uint64 address = trans.get_address();
-    sc_dt::uint64 masked_address;
     unsigned int target_nr = decode_dest(address);
     
     std::cout << "---------> Outgoing msg from Router: " << router_id
               << ", Transaction: " << decode_transID(trans.get_address())
-              << ", Target_Socket: " << target_socket.name()
-              << ", Id: " << id
-              << ", Init_Socket: " << init_socket.name()
               << ", Phase: " << phase
+              << ", SRC: " << decode_src(trans.get_address())
+              << ", DST: " << decode_dest(trans.get_address())
+              << ", Delay: " << delay
               << ", Time: " << sc_time_stamp() << "\n";
 
     tlm::tlm_sync_enum status;
 
-    trans.set_address( address );
+    if (router_id == target_nr && target_nr != TOP_ROUTER) {
 
-    if (router_id == target_nr) {
+        status = target_socket[0]->nb_transport_bw(trans, phase, delay);
+    }
 
-        //std::cout << "Sending message to Memory!\n";
+    else if (router_id == target_nr) {
+
+        //std::cout << "Sending message to Destiny!\n";
         status = init_socket[1]->nb_transport_fw(trans, phase, delay);
 
     } else {
 
-        //std::cout << "Sending message to next CPU!\n";
+        //std::cout << "Sending message to next Router!\n";
         status = init_socket[0]->nb_transport_fw(trans, phase, delay);
     }
     
@@ -74,18 +73,13 @@ tlm::tlm_sync_enum Router::nb_transport_bw(int id, tlm::tlm_generic_payload& tra
 {
     assert (id < init_socket.size());
 
-    // Replace original address
-    sc_dt::uint64 address = trans.get_address();
-    //trans.set_address(compose_address(decode_destination(address), decode_source(address) , address));
-    trans.set_address(address);
-
     std::cout << "<--------- Incoming msg from Router: " << router_id
               << ", Transaction: " << decode_transID(trans.get_address())
-              << ", Init_Socket: " << init_socket.name()
-              << ", Id: " << id
-              << ", Target_Socket: " << target_socket.name()
               << ", Phase: " << phase
+              << ", SRC: " << decode_src(trans.get_address())
+              << ", DST: " << decode_dest(trans.get_address())
+              << ", Delay: " << delay
               << ", Time: " << sc_time_stamp() << "\n";
 
-    return target_socket[ m_id_map[ &trans ] ]->nb_transport_bw(trans, phase, delay);
+    return init_socket[0]->nb_transport_fw(trans, phase, delay);
 }

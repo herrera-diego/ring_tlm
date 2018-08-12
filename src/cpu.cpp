@@ -35,15 +35,14 @@ void CPU::thread_process()
     sc_time delay;
 
     // Generate a sequence of random transactions
-    for (int i = 0; i < NUM_TRANSACTIONS; i++)
+    int begin = cpu_id * NUM_TRANSACTIONS;
+    int end = begin + NUM_TRANSACTIONS;
+
+    for (int i = begin; i < end; i++)
     {
         int adr = rand() % MEMORY_SIZE;
 
-        // adr = 0000 0000 0000 0000 0000 0000 0000 0000
-        //      |     id       |   src   |dest|  addr   |
-        adr = adr | (TOP_ROUTER << 8) | (cpu_id << 12) | (i+100*cpu_id << 20);
-
-       // cout << "XXXXX " << decode_transID(adr) << " " << i+100*cpu_id << " " << adr << "\n";
+        adr = compose_address(i, cpu_id, TOP_ROUTER, adr);
 
         tlm::tlm_command cmd = static_cast<tlm::tlm_command>(rand() % 2);
         
@@ -77,12 +76,13 @@ void CPU::thread_process()
         delay = sc_time(rand_ps(), SC_PS);
         
         std::cout << ">>>>>>>>>> Outgoing msg from CPU: " << cpu_id
-                  << ", Transaction: " << i+100*cpu_id
-                  << ", Socket name: " << init_socket.name()
+                  << ", Transaction: " << i
                   << ", Phase: " << phase
                   << ", Cmd: " << (cmd ? 'W' : 'R')
                   << ", Addr: " << dec << decode_addr(adr)
                   << ", Data: " << data
+                  << ", SRC: " << decode_src(adr)
+                  << ", DST: " << decode_dest(adr)
                   << ", Time: " << sc_time_stamp() << "\n";
 
         // Non-blocking transport call on the forward path
@@ -114,11 +114,11 @@ tlm::tlm_sync_enum CPU::nb_transport_bw(tlm::tlm_generic_payload& trans, tlm::tl
 {
     std::cout << "<<<<<<<<<< Incoming msg received in CPU: " << cpu_id
               << ", Transaction: " << decode_transID(trans.get_address())
-              << ", Socket name: " << init_socket.name()
               << ", Phase: " << phase
               << ", Cmd: " << (trans.get_command() ? 'W' : 'R')
               << ", Addr: " << dec << decode_addr(trans.get_address())
               << ", Data: " << *reinterpret_cast<int*>(trans.get_data_ptr())
+              << ", Delay: " << delay
               << ", Time: " << sc_time_stamp() << "\n";
 
     m_payload_event_queue.notify(trans, phase, delay);
@@ -146,7 +146,6 @@ void CPU::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase)
     {
         std::cout << "->->->->-> Transaction DONE! CPU: " << cpu_id
                   << ", Transaction: " << decode_transID(trans.get_address())
-                  << ", Socket name: " << init_socket.name()
                   << ", Phase: " << phase
                   << ", Cmd: " << (trans.get_command() ? 'W' : 'R')
                   << ", Addr: " << dec << decode_addr(trans.get_address())
@@ -156,6 +155,7 @@ void CPU::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase)
         request_in_progress = NULL;
         end_request_event.notify();
     }
+
     else if (phase == tlm::BEGIN_REQ || phase == tlm::END_RESP) {
 
         SC_REPORT_FATAL("TLM-2", "Illegal transaction phase received by initiator");
@@ -165,16 +165,19 @@ void CPU::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase)
 
         check_transaction( trans );
 
+        trans.set_address(compose_address(decode_transID(trans.get_address()), cpu_id, TOP_ROUTER, decode_addr(trans.get_address())));
+
         // Send final phase transition to target
         tlm::tlm_phase fw_phase = tlm::END_RESP;
         sc_time delay = sc_time(rand_ps(), SC_PS);
 
         std::cout << "->->->->-> Outgoing msg from CPU: " << cpu_id
                   << ", Transaction: " << decode_transID(trans.get_address())
-                  << ", Socket name: " << init_socket.name()
                   << ", Phase: " << fw_phase
                   << ", Cmd: " << (trans.get_command() ? 'W' : 'R')
                   << ", Addr: " << dec << decode_addr(trans.get_address())
+                  << ", SRC: " << decode_src(trans.get_address())
+                  << ", DST: " << decode_dest(trans.get_address())
                   << ", Time: " << sc_time_stamp() << "\n";
 
         init_socket->nb_transport_fw( trans, fw_phase, delay );

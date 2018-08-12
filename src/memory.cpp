@@ -53,11 +53,13 @@ tlm::tlm_sync_enum Memory::nb_transport_fw(tlm::tlm_generic_payload& trans,
 
     std::cout << ">>>>>>>>>> Outgoing msg received in Memory: " << name()
               << ", Transaction: " << decode_transID(trans.get_address())
-              << ", Target_Socket: " << target_socket.name()
               << ", Phase: " << phase
               << ", Addr: " << dec << decode_addr(adr)
               << ", Msg len: " << len
               << ", Data: " << *reinterpret_cast<int *>(&byt)
+              << ", SRC: " << decode_src(trans.get_address())
+              << ", DST: " << decode_dest(trans.get_address())
+              << ", Delay: " << delay
               << ", Time: " << sc_time_stamp() << "\n";
 
     // Obliged to check the transaction attributes for unsupported features
@@ -86,10 +88,11 @@ void Memory::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase
 
     std::cout << "<-<-<-<-<- Outgoing msg from Memory: " << name()
               << ", Transaction: " << decode_transID(trans.get_address())
-              << ", Target_Socket: " << target_socket.name()
               << ", Phase: " << phase
               << ", Cmd: " << (trans.get_command() ? 'W' : 'R')
               << ", Addr: " << dec << decode_addr(trans.get_address())
+              << ", SRC: " << decode_src(trans.get_address())
+              << ", DST: " << decode_dest(trans.get_address())
               << ", Time: " << sc_time_stamp() << "\n";
 
     switch (phase) {
@@ -117,9 +120,9 @@ void Memory::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase
         // On receiving END_RESP, the target can release the transaction
         // and allow other pending transactions to proceed
 
-        if (!response_in_progress) {
-            SC_REPORT_FATAL("TLM-2", "Illegal transaction phase END_RESP received by target");
-        }
+        //if (!response_in_progress) {
+        //    SC_REPORT_FATAL("TLM-2", "Illegal transaction phase END_RESP received by target");
+        //}
 
         trans.release();
         n_trans--;
@@ -171,6 +174,8 @@ void Memory::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase
                           << ", Executing: READ"
                           << ", Addr: " << dec << adr
                           << ", Data: " << mem[adr]
+                          << ", SRC: " << decode_src(trans.get_address())
+                          << ", DST: " << decode_dest(trans.get_address())
                           << ", Time: " << sc_time_stamp() << "\n";
             }
             else if ( cmd == tlm::TLM_WRITE_COMMAND ) {
@@ -182,6 +187,8 @@ void Memory::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase
                           << ", Executing: WRITE"
                           << ", Addr: " << dec << adr
                           << ", Data: " << *reinterpret_cast<int*>(ptr)
+                          << ", SRC: " << decode_src(trans.get_address())
+                          << ", DST: " << decode_dest(trans.get_address())
                           << ", Time: " << sc_time_stamp() << "\n";
             }
 
@@ -189,16 +196,20 @@ void Memory::peq_cb(tlm::tlm_generic_payload& trans, const tlm::tlm_phase& phase
 
             // Target must honor BEGIN_RESP/END_RESP exclusion rule
             // i.e. must not send BEGIN_RESP until receiving previous END_RESP or BEGIN_REQ
+            send_response(trans);
+            /*
             if (response_in_progress) {
-
+                std::cout << "RESPONSE IN PROGRESS!\n";
                 // Target allows only two transactions in-flight
                 if (next_response_pending)
                     SC_REPORT_FATAL("TLM-2", "Attempt to have two pending responses in target");
                 next_response_pending = &trans;
             }
             else {
+                std::cout << "RESPONSE NOT IN PROGRESS!\n";
                 send_response(trans);
             }
+            */
 
             break;
         }
@@ -216,12 +227,18 @@ tlm::tlm_sync_enum Memory::send_end_req(tlm::tlm_generic_payload& trans)
     bw_phase = tlm::END_REQ;
     delay = sc_time(rand_ps(), SC_PS); // Accept delay
 
-    std::cout << "<-<-<-<-<- Outgoing msg from Memory: " << name()
+    trans.set_address(compose_address(decode_transID(trans.get_address()),
+                                      TOP_ROUTER,
+                                      decode_src(trans.get_address()),
+                                      decode_addr(trans.get_address())));
+#if 0
+    std::cout << "SEND_END_PEQ: " << name()
               << ", Transaction: " << decode_transID(trans.get_address())
-              << ", Target_Socket: " << target_socket.name()
               << ", Phase: " << bw_phase
+              << ", SRC: " << decode_src(trans.get_address())
+              << ", DST: " << decode_dest(trans.get_address())
               << ", Time: " << sc_time_stamp() << "\n";
-
+#endif
     // Send Message to Router
     status = target_socket->nb_transport_bw( trans, bw_phase, delay );
 
@@ -251,14 +268,14 @@ void Memory::send_response(tlm::tlm_generic_payload& trans)
     bw_phase = tlm::BEGIN_RESP;
     delay = SC_ZERO_TIME;
 
-
-    trans.set_address(decode_addr(trans.get_address()) | (decode_dest(trans.get_address()) << 8) | (TOP_ROUTER << 20));
-
-    std::cout << "<-<-<-<-<- Outgoing msg from Memory: " << name()
+#if 0
+    std::cout << "SEND_RESPONSE: " << name()
               << ", Transaction: " << decode_transID(trans.get_address())
-              << ", Target_Socket: " << target_socket.name()
               << ", Phase: " << bw_phase
+              << ", SRC: " << decode_src(trans.get_address())
+              << ", DST: " << decode_dest(trans.get_address())
               << ", Time: " << sc_time_stamp() << "\n";
+#endif
 
     // Send Message to Router
     status = target_socket->nb_transport_bw(trans, bw_phase, delay);

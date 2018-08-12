@@ -24,7 +24,18 @@
 
 #define MEMORY_SIZE         256
 
-#define NUM_TRANSACTIONS    7
+#define NUM_TRANSACTIONS    1000
+
+
+#define ID_MASK             0xFF000000
+#define SRC_MASK            0xFF0000
+#define DST_MASK            0xFF00
+#define ADDR_MASK           0xFF
+
+#define ID_SHIFT            24
+#define SRC_SHIFT           16
+#define DST_SHIFT           8
+#define ADDR_SHIFT          0
 
 inline unsigned int decode_address(sc_dt::uint64 address, sc_dt::uint64& masked_address)
 {
@@ -33,36 +44,33 @@ inline unsigned int decode_address(sc_dt::uint64 address, sc_dt::uint64& masked_
     return target_nr;
 }
 
-inline sc_dt::uint64 compose_address(unsigned int target_nr, sc_dt::uint64 address)
+inline sc_dt::uint64 compose_address(unsigned int trans_id, unsigned int src, unsigned int dst, unsigned int addr)
 {
+    unsigned int address = (((trans_id << ID_SHIFT) & ID_MASK) |
+                            ((src << SRC_SHIFT) & SRC_MASK) |
+                            ((dst << DST_SHIFT) & DST_MASK) |
+                            (addr & ADDR_MASK));
     return address;
 }
 
 inline unsigned int decode_addr(sc_dt::uint64 address)
 {
-    unsigned int masked_address = static_cast<unsigned int>( address & 0xFF );
-    return masked_address;
+    return (address & ADDR_MASK);
 }
 
 inline unsigned int decode_transID(sc_dt::uint64 address)
 {
-    unsigned int masked_address = static_cast<unsigned int>( address & 0xFFFF00000 );
-    masked_address = masked_address >> 20;
-    return masked_address;
+    return ((address >> ID_SHIFT) & ADDR_MASK);
 }
 
 inline unsigned int decode_dest(sc_dt::uint64 address)
 {
-    unsigned int dest = static_cast<unsigned int>( address & 0xF00 );
-    dest = dest >> 8;
-    return dest;
+    return ((address >> DST_SHIFT) & ADDR_MASK);
 }
 
 inline unsigned int decode_src(sc_dt::uint64 address)
 {
-    unsigned int src = static_cast<unsigned int>( address & 0xFF000 );
-    src = src >> 12;
-    return src;
+    return ((address >> SRC_SHIFT) & ADDR_MASK);
 }
 
 #endif //__CONSTANTS_H__
