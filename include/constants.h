@@ -27,13 +27,13 @@
 #define NUM_TRANSACTIONS    1000
 
 
-#define ID_MASK             0xFF000000
-#define SRC_MASK            0xFF0000
-#define DST_MASK            0xFF00
+#define ID_MASK             0x1FFF0000
+#define SRC_MASK            0xF000
+#define DST_MASK            0xF00
 #define ADDR_MASK           0xFF
 
-#define ID_SHIFT            24
-#define SRC_SHIFT           16
+#define ID_SHIFT            16
+#define SRC_SHIFT           12
 #define DST_SHIFT           8
 #define ADDR_SHIFT          0
 
@@ -60,17 +60,17 @@ inline unsigned int decode_addr(sc_dt::uint64 address)
 
 inline unsigned int decode_transID(sc_dt::uint64 address)
 {
-    return ((address >> ID_SHIFT) & ADDR_MASK);
+    return ((address >> ID_SHIFT) & 0x1FFF);
 }
 
 inline unsigned int decode_dest(sc_dt::uint64 address)
 {
-    return ((address >> DST_SHIFT) & ADDR_MASK);
+    return ((address >> DST_SHIFT) & 0xF);
 }
 
 inline unsigned int decode_src(sc_dt::uint64 address)
 {
-    return ((address >> SRC_SHIFT) & ADDR_MASK);
+    return ((address >> SRC_SHIFT) & 0xF);
 }
 
 #endif //__CONSTANTS_H__
